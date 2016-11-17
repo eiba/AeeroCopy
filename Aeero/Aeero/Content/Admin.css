@@ -1,0 +1,118 @@
+﻿
+.button-box {
+    cursor: pointer;
+    background-color: #af0200;
+    height: 3.7em;
+    width: 22em;
+    margin: auto;
+    margin-top: 3em;
+    margin-bottom: 3em;
+}
+
+#desc-text {
+    font-size: 1.5em; 
+    display: block;
+    height: 1.7em;
+    margin: auto;
+    margin-top: 3em;
+    padding: 0em 7em 0em 7em;
+    padding-top: 0.17em;
+    text-align: center;
+    color: #545454;
+}
+
+button {
+    text-decoration:none;
+}
+
+.admin-column {
+    border-right: 1px solid #B8B8B8;
+    margin: 4em 0;
+    text-decoration: none;
+}
+
+.home-button-link {
+    font-size:2em;
+    color: #E6FFFC;
+    font-weight:200;
+    text-decoration:none;
+}
+
+.contacts-button-box {
+    display: inline-block;
+    cursor: pointer;
+    background-color: #af0200;
+    height: 2em;
+    width: 8em;
+    margin-right: 0.5em;
+    margin-left: 0.5em;
+    border-radius: 0.4em;
+}
+
+.contacts-button-box:hover {
+    background-color: #e60000;
+}
+
+.contacts-button-box:active {
+    background-color: #ff0000;
+}
+
+.contacts-button-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    line-height: 200%;
+    font-size:1em;
+    color: #E6FFFC;
+    font-weight:200;
+    -webkit-touch-callout: none; 
+    -webkit-user-select: none;   
+    -moz-user-select: none;      
+    -ms-user-select: none;       
+    user-select: none;
+}
+
+.contacts-button-link:hover {
+    text-decoration: none;
+    color: #E6FFFC;
+}
+
+.add-button-box {
+    margin-bottom: 1em;
+}
+
+.back-button-box {
+    height: 3em;
+    width: 12em;
+    margin-top: 2em;
+    margin-bottom: 1em;
+    border-radius: 0.5em;
+    background-color: #555555;
+}
+
+.back-button-link {
+    color: #DDDDDD;
+    font-size: 1.25em;
+    line-height: 230%;
+}
+
+.back-button-box:hover {
+    background-color: #666666;
+}
+
+.back-button-link {
+    color: #EEEEEE;
+}
+
+.no-color {
+    display: inline;
+    width: 2px;
+}
+
+#delete-span {
+    padding-top: 20px;
+}
+
+table.fixed { table-layout: fixed; }
+table.fixed td { overflow: hidden; }

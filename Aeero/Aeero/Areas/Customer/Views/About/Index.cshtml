@@ -1,0 +1,135 @@
+﻿@using Aeero.Models
+@model Aeero.Models.AboutModel
+
+@{
+    ViewBag.Title = "Om oss";
+    var address = @Model.Contact.Address.Replace(" ", "+") + " + " + @Model.Contact.ZipCode + "+" + @Model.Contact.City;
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <hr />
+        <iframe
+        height="450"
+        frameborder="0" style="border: 0; width: 100%"
+        src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBt91lV3UrijSol4aZdxVVUXzqhH-rVq7A&q=@address" allowfullscreen>
+        </iframe>    
+    <hr/>
+    </div> 
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <ul class="list-group">
+            <li class="list-group-item">
+                <h4>Bes&oslash;ksadresse</h4>
+                @Model.Contact.Address, @Model.Contact.ZipCode @Model.Contact.City
+            </li>
+            <li class="list-group-item">
+                <h4>Kontakt oss</h4>
+                <strong>Telefon: </strong> @Model.Contact.Phone <br/>
+                <strong>Epost: </strong> <a href="mailto:@Model.Contact.Email">@Model.Contact.Email</a>
+                @if ((Model.Twitter.Url != null || Model.Twitter.UserName!=null) && Model.Twitter.isActive)
+                {
+                    if (Model.Twitter.UserName != null)
+                    {
+                        <br/>
+                        <br/>
+                        <a href="https://twitter.com/intent/tweet?screen_name=@Model.Twitter.UserName" class="twitter-mention-button" data-lang="no" data-related=@Model.Twitter.UserName></a>
+                    }
+                    else
+                    {
+                        <br />
+                        <br/>
+                       <a href="https://twitter.com/intent/tweet?screen_name=@Model.Twitter.Url" class="twitter-mention-button" data-lang="no" data-related=@Model.Twitter.Url></a>
+
+                    }
+                }
+            </li>
+            <li class="list-group-item">
+                <a href="@Url.Action("Index", "Order")" class="btn btn-block btn-lg btn-primary">Bestill din pizza n&aring;!</a>
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Dag</th>
+                        <th>&Aring;pent fra/til</th>
+                        <th>Levering fra/til</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var day in (List<Hours>) ViewBag.Hours)
+                    {
+                        <tr>
+                            <td>@day.Day</td>
+                            <td>
+                                @if (day.OpeningHours == day.ClosingHours)
+                                {
+                                    @("Stengt");
+                                }
+                                else
+                                {
+                                    @(day.OpeningHours + " - " + day.ClosingHours);
+                                }
+                            </td>
+                            <td>
+                                @if (day.DeliveryStart == day.DeliveryEnd)
+                                {
+                                    @("Ingen levering");
+                                }
+                                else
+                                {
+                                    @(day.DeliveryStart + " - " + @day.DeliveryEnd)
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    @if ((Model.Twitter.Url != null) && Model.Twitter.isActive)
+    {
+        <a class="twitter-follow-button"
+           href=@Model.Twitter.Url data-lang="no"></a>
+    }
+    @if ((Model.Facebook.Url != null) && Model.Facebook.isActive)
+    {
+        <div id="fb-root"></div>
+        <div class="fb-like" data-href=@Model.Facebook.Url data-width="300px" data-layout="standard" data-action="like" data-show-faces="true" data-share="true"></div>
+    }
+</div>
+
+
+<script>
+(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/nb_NO/sdk.js#xfbml=1&version=v2.6";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+
+window.twttr = (function (d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0],
+      t = window.twttr || {};
+    if (d.getElementById(id)) return t;
+    js = d.createElement(s);
+    js.id = id;
+    js.src = "https://platform.twitter.com/widgets.js";
+    fjs.parentNode.insertBefore(js, fjs);
+
+    t._e = [];
+    t.ready = function (f) {
+        t._e.push(f);
+    };
+
+    return t;
+}(document, "script", "twitter-wjs"));
+</script>

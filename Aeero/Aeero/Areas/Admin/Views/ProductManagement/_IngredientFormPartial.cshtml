@@ -1,0 +1,22 @@
+﻿@using Aeero.Models
+@model Aeero.Models.Pizza
+
+@{
+    var formid = Model.PizzaId + "mm";
+    var buttonId = Model.PizzaId + "kk";
+}
+
+@using (Ajax.BeginForm("showPizzaDetails", "ProductManagement", new { id = @Model.PizzaId }, new AjaxOptions
+{
+    UpdateTargetId = "pizzaModal",
+    InsertionMode = InsertionMode.Replace,
+    HttpMethod = "GET",
+    AllowCache = false
+
+
+}, new { @class = "form-horizontal", role = "form" ,id=@formid }))
+{
+    <button id="@buttonId" type="submit" class="btn btn-link j"><b>Detaljer</b></button>
+}
+
+

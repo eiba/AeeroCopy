@@ -1,0 +1,10 @@
+$navbar-height: 65px;
+
+$navbar-inverse-color: #FFC9AB;
+$navbar-inverse-bg: $red;
+$navbar-inverse-border: darken($navbar-inverse-bg, 10%) !default;
+
+// Inverted navbar links
+$navbar-inverse-link-color:                 lighten($navbar-inverse-color, 5%);
+// Inverted navbar brand label
+$navbar-inverse-brand-color:                $navbar-inverse-link-color;

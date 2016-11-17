@@ -1,0 +1,47 @@
+﻿/* CSS only used in the Touch area subproject */
+
+.bootstrap-datetimepicker-widget table td.day {
+    height: 50px !important;
+}
+
+.bootstrap-datetimepicker-widget table td.active, .bootstrap-datetimepicker-widget table td.active:hover {
+    background-color: $red !important;
+}
+
+.btn-prev-status {
+    text-align: right;
+
+    i {
+        float: left;
+        font-size: 120%;
+        margin-top: 1px;
+    }
+}
+
+.btn-next-status {
+    text-align: left;
+
+    i {
+        float: right;
+        font-size: 120%;
+        margin-top: 1px;
+    }
+}
+
+
+.timepicker-picker .table-condensed {
+    margin-top: 60px;
+}
+
+.panel-pizza-btn {
+    transition: all 0.25s;
+
+    .panel-body {
+        height: 80px;
+    }
+
+    &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+}

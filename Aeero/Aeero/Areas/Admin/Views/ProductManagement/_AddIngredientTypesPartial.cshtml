@@ -1,0 +1,172 @@
+﻿@model Aeero.Models.IngredientType
+
+@{ 
+    var isActive = true;
+}
+
+<div id="app2">
+        
+
+    <modal :show.sync="showModal">
+        <h3 slot="header">Legg til Ingredienstype</h3>
+        <h5 slot="body">
+            @using (Ajax.BeginForm("Create", "IngredientType", null, new AjaxOptions
+            {
+                UpdateTargetId = "updateIngredientTypes",
+                InsertionMode = InsertionMode.Replace,
+                HttpMethod = "POST",
+                OnSuccess = "suc"
+
+            }, new { @class = "form-horizontal", role = "form", id = "form2" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+                    
+                    
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.TypeName, htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.TypeName, new { htmlAttributes = new { @class = "form-control", id="typeName", @style= "position: relative; left: 30px;" } })
+                            @Html.ValidationMessageFor(model => model.TypeName, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.TypeMax, htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.TypeMax, new { htmlAttributes = new { @class = "form-control", id="typeMax", @style = "position: relative; left: 30px;" } })
+                            @Html.ValidationMessageFor(model => model.TypeMax, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.TypeUnique, htmlAttributes: new {@class = "control-label col-md-2"})
+                        <div class="col-md-10">
+                            <div class="checkbox" style="position: relative; left: 50px;">
+                                @Html.EditorFor(model => model.TypeUnique)
+                                @Html.ValidationMessageFor(model => model.TypeUnique, "", new {@class = "text-danger"})
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.TypeExtras, htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-10">
+                            <div class="checkbox" style="position: relative; left: 50px;">
+                                @Html.EditorFor(model => model.TypeExtras)
+                                @Html.ValidationMessageFor(model => model.TypeExtras, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                    @Html.HiddenFor(model => @isActive)
+
+                </div>
+
+            }
+
+        </h5>
+    </modal>
+</div>
+
+<script type="x/template" id="ModalId2">
+    <div class="modal-mask" v-on:click="close" v-show="show" transition="modal">
+        <div class="modal-wrapper">
+            <div class="modal-container" style="width:550px;" v-on:click.stop>
+
+                <div class="modal-header">
+                    <slot name="header">
+                    </slot>
+                </div>
+
+                <div class="modal-body">
+                    <slot name="body">
+
+                    </slot>
+
+                </div>
+
+                <div class="modal-footer">
+                    <slot name="footer">
+                        <button class="modal-default-button btn-danger btn" id="knapp" v-on:click="closeButton">
+                            Legg til
+                        </button>
+                    </slot>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script>
+
+    Vue.component('modal', {
+        template: '#ModalId2',
+        props: {
+            show: {
+                type: Boolean,
+                required: true,
+                twoWay: true
+
+            }
+        },
+        methods: {
+            close: function() {
+                this.show = false;
+                this.clearFields();
+            },
+            closeButton: function () {
+
+                if ($("form#form2").valid()) {
+                    $("form#form2").submit();
+                    this.show = false;
+                    this.clearFields();
+                }
+
+            },
+            showMethod: function() {
+                this.showModal = true;
+            },
+
+            clearFields: function () {
+                $("#typeName").val("");
+                $("#typeMax").val("");
+
+            },
+        },
+        ready: function() {
+            this.show = true;
+            document.addEventListener("keydown", (e) => {
+                if (this.show && e.keyCode == 27) {
+                    this.close();
+                }
+                else if (this.show && e.keyCode == 13) {
+                    this.closeButton();
+                }
+
+            });
+
+        }
+    });
+    new Vue({
+        el: '#app2',
+        data: {
+            showModal: false,
+
+        },methods: {
+            showModalf: function () {
+            this.clearFields();
+            this.showModal = true;
+            },
+            clearFields: function () {
+                $("#typeName").val("");
+                $("#typeMax").val("");
+            },
+
+            }
+    });
+    function suc() {
+        $("form#form4").submit();
+    }
+</script>

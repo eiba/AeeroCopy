@@ -1,0 +1,134 @@
+﻿@model Aeero.Models.IngredientType
+
+@{
+    var vueId = "e" + Model.TypeId;
+    var modalId = "f" + Model.TypeId;
+    var unik = "Nei";
+    var tilbehør = "Nei";
+    if (Model.TypeUnique)
+    {
+        unik = "Ja";
+    }
+    if (Model.TypeExtras)
+    {
+        tilbehør = "Ja";
+    }
+}
+<div id="@vueId">
+
+    <modal :show.sync="showModal">
+        <h3 slot="header">@Html.DisplayFor(model => model.TypeName)</h3>
+        <h5 slot="body">
+            <dl class="dl-horizontal">
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.TypeMax)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.TypeMax)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.TypeUnique)
+                </dt>
+                <dd>
+                    @unik
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.TypeExtras)
+                </dt>
+
+                <dd>
+                    @tilbehør
+                </dd>
+              
+            </dl>
+
+        </h5>
+    </modal>
+</div>
+
+<script type="x/template" id="@modalId">
+    <div class="modal-mask" v-on:click="close" v-show="show" transition="modal">
+        <div class="modal-wrapper">
+            <div class="modal-container" v-on:click.stop style="width: 400px;">
+
+                <div class="modal-header">
+                    <slot name="header">
+                    </slot>
+                </div>
+
+                <div class="modal-body">
+                    <slot name="body">
+
+                    </slot>
+
+                </div>
+
+                <div class="modal-footer">
+                    <slot name="footer">
+                        <button class="modal-default-button btn-danger btn" id="knapp" v-on:click="closeButton">
+                            OK
+                        </button>
+                    </slot>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script>
+
+    Vue.component('modal', {
+        template: '#@modalId',
+        props: {
+            show: {
+                type: Boolean,
+                required: true,
+                twoWay: true
+
+            }
+        },
+        methods: {
+            close: function() {
+                this.show = false;
+            },
+            closeButton: function () {
+                    this.show = false;
+            },
+
+            showMethod: function() {
+                this.showModal = true;
+            }
+            },
+
+        ready: function() {
+            this.show = true;
+            document.addEventListener("keydown", (e) => {
+                if (this.show && e.keyCode == 27) {
+                    this.close();
+                }
+                else if (this.show && e.keyCode == 13) {
+                    this.closeButton();
+                }
+
+            });
+
+        }
+    });
+    new Vue({
+        el: '#@vueId',
+        data: {
+            showModal: false,
+
+        },methods: {
+            showModalf: function () {
+
+            this.showModal = true;
+            }
+
+            }
+    });
+</script>

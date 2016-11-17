@@ -1,0 +1,183 @@
+﻿@using Aeero.Models
+@model  Aeero.Areas.Admin.Models.IngredientModelExtended
+
+<br/>
+@using (Ajax.BeginForm("showIngredientCreate", "ProductManagement", null, new AjaxOptions
+{
+    UpdateTargetId = "ingredientModal",
+    InsertionMode = InsertionMode.Replace,
+    HttpMethod = "GET",
+
+
+}, new { @class = "form-horizontal", role = "form", id = "kay" }))
+{
+    <button id="createIng" type="submit" class="btn btn-primary j"><b>Legg til ingrediens</b></button>
+}
+<br/><br/>
+<input type="checkbox" id="checkbox2"> Vis kun aktive produkter
+@using (Ajax.BeginForm("EditShow", "ProductManagement", new { k = true, type = "Ingredient" }, new AjaxOptions
+{
+
+    UpdateTargetId = "updateIngredients",
+    InsertionMode = InsertionMode.Replace,
+    HttpMethod = "POST"
+}
+, new { id = "AjaxxForm" }))
+{
+}
+@using (Ajax.BeginForm("EditShow", "ProductManagement", new { k = false, type = "Ingredient" }, new AjaxOptions
+{
+
+    UpdateTargetId = "updateIngredients",
+    InsertionMode = InsertionMode.Replace,
+    HttpMethod = "POST"
+
+}
+ , new { id = "kk" }))
+{
+}
+
+<script>
+    $(document).ready(function() {
+        var check = '@Model.show';
+        if (check =='True') {
+            $('#checkbox2').prop('checked', true);
+        }
+        $('#checkbox2').change(function() {
+            if ($(this).is(":checked")) {
+
+                $("form#AjaxxForm").submit();
+            } else {
+                $("form#kk").submit();
+            }
+        });
+    });
+</script>
+
+<div class="col-md-10"></div>
+<div class="col-md-2">
+    <div class="text-danger">
+        @ViewBag.Error
+    </div>
+    <div class="text-success">
+        @ViewBag.success
+    </div>
+</div>
+
+<h2>Ingredienser</h2>
+<div id="ingredientModal"></div>
+<table class="table table-hover">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Ingredients.GetEnumerator().Current.Name)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Ingredients.GetEnumerator().Current.Vegetarian)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Ingredients.GetEnumerator().Current.PriceSmall)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Ingredients.GetEnumerator().Current.PriceMedium)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Ingredients.GetEnumerator().Current.PriceLarge)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Ingredients.GetEnumerator().Current.TypeId)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model.Ingredients)
+    {
+        if (!Model.show || (Model.show && item.isActive && item.Type.isActive))
+        {
+            var detailsId = item.IngredientId + "kba";
+            var editId = item.IngredientId + "kbb";
+            var deleteId = item.IngredientId + "kbc";
+            var ingredient = "";
+            var elementid = "";
+            var btnTxt = "Deaktiver";
+            if (item.isActive == false || item.Type.isActive==false)
+            {
+                elementid = "greyout";
+                btnTxt = "Aktiver";
+            }
+            if (item.IngredientId.ToString() == @ViewBag.SuccessId)
+            {
+                ingredient = "success";
+            }
+            else if (item.IngredientId.ToString() == @ViewBag.FailId)
+            {
+                ingredient = "danger";
+            }
+            <tr class="@ingredient">
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.Vegetarian)
+                </td>
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.PriceSmall)
+                </td>
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.PriceMedium)
+                </td>
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.PriceLarge)
+                </td>
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.Type.TypeName)
+                </td>
+                <td style="width: 340px">
+                    @using (Ajax.BeginForm("showIngredientDetails", "ProductManagement", new {id = @item.IngredientId}, new AjaxOptions
+                    {
+                        UpdateTargetId = "ingredientModal",
+                        InsertionMode = InsertionMode.Replace,
+                        HttpMethod = "GET",
+
+
+                    }, new {@class = "form-horizontal", role = "form", id = detailsId}))
+                    {
+                        <button type="submit" class="btn btn-primary j"><b>Detaljer</b></button>
+
+                    }
+                    @using (Ajax.BeginForm("showIngredientEdit", "ProductManagement", new {id = @item.IngredientId}, new AjaxOptions
+                    {
+                        UpdateTargetId = "ingredientModal",
+                        InsertionMode = InsertionMode.Replace,
+                        HttpMethod = "GET",
+
+
+                    }, new {@class = "form-horizontal", role = "form", id = editId}))
+                    {
+                        <button type="submit" class="btn btn-primary j"><b>Rediger</b></button>
+
+                    }
+                    @using (Ajax.BeginForm("Deactivate", "Ingredient", null, new AjaxOptions
+                    {
+                        UpdateTargetId = "updateIngredients",
+                        InsertionMode = InsertionMode.Replace,
+                        HttpMethod = "POST",
+
+
+                    }, new {@class = "form-horizontal", role = "form", id = deleteId}))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-actions no-color">
+                            <input type="hidden" name="id" value=@item.IngredientId>
+                        </div>
+                        <button type="submit" class="btn btn-primary j"><b>@btnTxt</b></button>
+
+                    }
+                </td>
+            </tr>
+        }
+    }
+
+</table>
+
+

@@ -1,0 +1,80 @@
+﻿@using Aeero.Areas.Admin.Controllers
+@{
+    ViewBag.Title = "Forside | Meny";
+}
+
+<div class="row">
+    <div class="col-md-6 admin-column">
+        <a class="btn btn-lg btn-primary center-block home-button-link"
+           href='@Url.Action("Index", "HRManagement")'
+           style="width:14em; margin-top:1em; margin-bottom:1em;"
+           v-on:mouseover="hrMouseOver"
+           v-on:mouseleave="MouseLeave">
+            Ansatte
+        </a>
+        <a class="btn btn-lg btn-primary center-block home-button-link"
+           href='@Url.Action("Index", "ProductManagement")'
+           style="width: 14em; margin-top: 1em; margin-bottom: 1em;"
+           v-on:mouseover="prodMouseOver"
+           v-on:mouseleave="MouseLeave">
+            Produkter
+        </a>
+        <a class="btn btn-lg btn-primary center-block home-button-link"
+           href='@Url.Action("Index", "Contacts")'
+           style="width:14em; margin-top:1em; margin-bottom:1em;"
+           v-on:mouseover="prMouseOver"
+           v-on:mouseleave="MouseLeave">
+            Tilgjengelighet
+        </a>
+        <a class="btn btn-lg btn-primary center-block home-button-link"
+           href='@Url.Action("Index", "OrderHistory")'
+           style="width:14em; margin-top:1em; margin-bottom:1em;"
+           v-on:mouseover="orderMouseOver"
+           v-on:mouseleave="MouseLeave">
+            Ordrehistorikk
+        </a>
+    </div>
+    <div class="col-md-6">
+        <span id="desc-text">{{ description }}</span>
+    </div>
+</div>
+
+<script>
+    new Vue({
+        el: 'body',
+
+        data: {
+            description: ""
+        },
+
+        methods: {
+            hrMouseOver: function () {
+                this
+                    .description =
+                    "Dette er et verktøy for administrering av menneskelige ressurser. Se detaljer, legg til, rediger eller deaktiver ansatte.";
+            },  
+
+            MouseLeave: function () {
+                this.description = "";
+            },
+
+            prMouseOver: function () {
+                this
+                    .description =
+                    "Dette er et PR verktøy. Rediger åpningstider, leveringstider, kontaktinformasjon, etc.";
+            },
+
+            prodMouseOver: function () {
+                this
+                    .description =
+                    "Dette er et verktøy for administrering av produkter. Legg til, rediger eller slett produkter, beskrivelser og priser.";
+            },
+
+            orderMouseOver: function () {
+                this
+                    .description =
+                    "Søk og filtrer i ordrehistorikken for både aktive og fullførte ordre.";
+            }
+        }
+    });
+</script>

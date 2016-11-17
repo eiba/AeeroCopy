@@ -1,0 +1,153 @@
+﻿
+@using Aeero.Models
+@model Aeero.Models.IngredientType
+
+@{
+    var vueId = "q" + Model.TypeId;
+    var modalId = "r" + Model.TypeId;
+    var formId = "rt" + Model.TypeId;
+    var id = "rb" + Model.TypeId;
+    var unik = "Nei";
+    if (Model.TypeUnique)
+    {
+        unik = "Ja";
+    }
+
+}
+<div id="@vueId">
+
+
+    <modal :show.sync="showModal">
+        <h3 slot="header" style="color: #ff0000;">Er du sikker på at du vil slette @Model.TypeName?</h3>
+        <h5 slot="body">
+            @using (Ajax.BeginForm("Deactivate", "IngredientType", null, new AjaxOptions
+            {
+                UpdateTargetId = "updateIngredientTypes",
+                InsertionMode = InsertionMode.Replace,
+                HttpMethod = "POST",
+
+            }, new { @class = "form-horizontal", role = "form", id = formId }))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-actions no-color">
+                    <input type="hidden" name="id" value=@Model.TypeId id=@id>
+                </div>
+            }
+            <dl class="dl-horizontal">
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.TypeMax)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.TypeMax)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.TypeUnique)
+                </dt>
+
+                <dd>
+                    @unik
+                </dd>
+
+            </dl>
+            
+
+
+        </h5>
+    </modal>
+</div>
+
+<script type="x/template" id="@modalId">
+    <div class="modal-mask" v-on:click="close" v-show="show" transition="modal">
+        <div class="modal-wrapper">
+            <div class="modal-container" v-on:click.stop style="width: 400px;">
+
+                <div class="modal-header">
+                    <slot name="header">
+                    </slot>
+                </div>
+
+                <div class="modal-body">
+                    <slot name="body">
+
+
+                    </slot>
+
+                </div>
+
+                <div class="modal-footer">
+                    <slot name="footer">
+                        <p style=" color:#ff0000; text-align:left;"><b>Ingrediensentypen vil bli permanent fjærnet fra databasen</b></p>
+                        <button class="modal-default-button btn-danger btn" id="knapp2" v-on:click="close">
+                            Avbryt
+                        </button>
+                        <button class="modal-default-button btn-danger btn" id="knapp" v-on:click="closeButton" style="position:relative; right:220px;">
+                            Ja
+                        </button>
+                    </slot>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script>
+
+    Vue.component('modal', {
+        template: '#@modalId',
+        props: {
+            show: {
+                type: Boolean,
+                required: true,
+                twoWay: true
+
+            }
+        },
+        methods: {
+            close: function() {
+                this.show = false;
+            },
+            closeButton: function () {
+                if ($("form#@formId").valid()) {
+                    $("form#@formId").submit();
+                    this.show = false;
+                }
+            },
+
+            showMethod: function() {
+                this.showModal = true;
+            }
+            },
+
+        ready: function() {
+            this.show = true;
+            document.addEventListener("keydown", (e) => {
+                if (this.show && e.keyCode == 27) {
+                    this.close();
+                }
+                else if (this.show && e.keyCode == 13) {
+                    this.closeButton();
+                }
+
+            });
+
+        }
+    });
+    new Vue({
+        el: '#@vueId',
+        data: {
+            showModal: false,
+
+        },methods: {
+            showModalf: function () {
+            $("#@id").val(@Model.TypeId);
+            this.showModal = true;
+            }
+
+            }
+    });
+
+</script>

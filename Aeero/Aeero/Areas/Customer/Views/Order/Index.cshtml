@@ -1,0 +1,726 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div id="orderApp">
+
+<div class="row">
+    <div class="col-md-7">
+        <h2>Meny</h2>
+        <hr/>
+        <ul class="list-unstyled">
+            <li class="media" v-for="template in Templates">
+                <div class="media-left" v-if="template.FileId">
+                    <img class="media-object" v-bind:src="'@Url.Action("Index", "File", new {area = "Admin"})?id='+template.FileId" width="175"/>
+                </div>
+                <div class="media-body">
+                    <h3 class="media-heading">
+                        {{template.Name}}
+                        <small class="pull-right">{{template.PriceSmall}},- / {{template.PriceMedium}},- / {{template.PriceLarge}},-</small>
+                    </h3>
+                    <p>{{template.Ingredients|commaSeparatedKey 'Name'}}</p>
+                    <hr/>
+                    <div class="text-right">
+                        <button class="btn btn-success btn-sm" title="Legg til i bestilling" v-on:click="addLine(template)"><i class="glyphicon glyphicon-shopping-cart"></i> Legg til</button>
+                        <button class="btn btn-warning btn-sm" title="Legg til i bestilling og tilpass pizza" v-on:click="addLineAndEdit(template)"><i class="glyphicon glyphicon-refresh"></i> Tilpass</button>
+                    </div>
+                </div>
+
+                <hr/>
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-5">
+        <h2>Min bestilling</h2>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <h4>Ordredetaljer</h4>
+                <div class="row">
+                    <div class="form-group col-md-7">
+                        <label class="control-label">Ditt navn:</label>
+                        <input class="form-control" type="text" v-model="Order.CustomerName"/>
+                    </div>
+                    <div class="form-group col-md-5">
+                        <label class="control-label">Telefon:</label>
+                        <input class="form-control" type="text" v-model="Order.Phone"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" v-model="Order.Deliver"/>
+                        Utkjøring / levering
+                    </label>
+                </div>
+
+                <div class="row" v-if="Order.Deliver">
+                    <div class="form-group col-md-5">
+                        <label class="control-label">Leveringsadresse:</label>
+                        <input class="form-control" type="text" v-model="Order.Address"/>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label class="control-label">Postnummer:</label>
+                        <input class="form-control" type="text" v-model="Order.ZipCode" v-on:keyup="updateCity()"/>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label class="control-label">Poststed:</label>
+                        <input class="form-control" type="text" v-model="Order.City" disabled/>
+                    </div>
+                </div>
+
+                <hr/>
+
+                <div style="min-height: 140px">
+                    <p v-if="Order.Lines.length === 0">
+                        <em>Ingen pizza lagt til.</em>
+                    </p>
+                    <div v-if="Order.Lines.length > 0">
+                        <table class="table align-middle">
+                            <thead>
+                            <tr>
+                                <th>Pizza</th>
+                                <th>Størrelse</th>
+                                <th colspan="2">Antall</th>
+                                <th>&nbsp;</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr v-for="line in Order.Lines">
+                                <td>
+                                    {{line.Pizza.Name}}<br/>
+                                    <strong v-if="line.Pizza.Changed">(endret)<br/></strong>
+                                    <small>{{line.Count}} &times; kr {{line.Pizza.Price.toFixed(2)}}</small>
+                                </td>
+                                <td>
+                                    <select class="form-control" v-model="line.Pizza.Size" v-on:change="updateSize(line.Pizza)">
+                                        <option value="2">Stor</option>
+                                        <option value="1">Medium</option>
+                                        <option value="0">Liten</option>
+                                    </select>
+                                </td>
+                                <td class="text-center">
+                                    <select class="form-control" v-model="line.Count">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                        <option value="6">6</option>
+                                        <option value="7">7</option>
+                                        <option value="8">8</option>
+                                        <option value="9">9</option>
+                                        <option value="10">10</option>
+                                    </select>
+                                </td>
+                                <td><button class="btn btn-danger" title="Fjern fra bestilling" v-on:click="removeLine($index)"><i class="glyphicon glyphicon-remove"></i></button></td>
+                                <td class="text-right"><button class="btn btn-warning" title="Tilpass pizza" v-on:click="editPizza(line.Pizza)"><i class="glyphicon glyphicon-refresh"></i></button></td>
+                            </tr>
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td><strong>Sum varer</strong></td>
+                                <td colspan="4" class="text-right">kr {{OrderPrice.toFixed(2)}}</td>
+                            </tr>
+                            <tr v-if="Order.Deliver">
+                                <td>
+                                    <strong>Utkjøring</strong>
+                                </td>
+                                <td colspan="4" class="text-right">
+                                    + kr {{FixedDeliveryPrice}}.00
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <hr/>
+
+                <h4 class="control-label">
+                    Dato og tidspunkt for
+                    <span v-if="Order.Deliver">levering</span>
+                    <span v-if="!Order.Deliver">henting</span>
+                </h4>
+                <input type="hidden" v-datepicker="Order.DeliveryTime"/>
+                <hr/>
+
+                <div class="form-group form-horizontal">
+                    <div class="row">
+                        <label for="orderTime" class="col-md-4 control-label">Klokkeslett:</label>
+                        <div class="col-md-7">
+                            <select id="orderTime" class="form-control" v-model="Order.DeliveryTime">
+                                <option v-bind:value="Order.DeliveryTime">Velg klokkeslett</option>
+                                <option v-for="time in TimeChoices" value="{{time.toJSON()}}">kl. {{time.format('HH:mm')}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="panel-footer text-right">
+                <button class="btn btn-success" v-bind:disabled="!IsOrderValid" v-on:click="confirmOrder()">Send bestilling / betaling <i class="glyphicon glyphicon-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal show" v-if="Edit !== null">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" v-on:click="Edit = null"><span aria-hidden="true">&times;</span></button>
+                <h3>{{Edit.Name}} (kr {{Edit.Price}},-)</h3>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" v-for="error in EditErrors">{{error}}</div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <h4>Ingredienser</h4>
+                        <div class="form-group" v-for="type in UniqueIngredientTypes">
+                            <select class="form-control" v-on:change="updateUniqueIngredients(Edit)" v-model="UniqueIngredients[type.Id]">
+                                <option v-for="ingredient in type.Ingredients"
+                                        v-bind:selected="ingredientCount(Edit, ingredient.Id) > 0"
+                                        v-bind:value="ingredient.Id">
+                                    {{ingredient.Name}} ({{priceDiff(Edit.Size, ingredient, ingredientForType(type.Id))}} kr)
+                                </option>
+                            </select>
+                        </div>
+
+                        <ul class="list-group">
+                            <li class="list-group-item" v-for="ingredient in Edit.Ingredients" v-if="!isIngredientUniqueType(ingredient)">
+                                <div class="pull-right" style="margin-top: -5px">
+                                    <button class="btn btn-sm btn-success"
+                                            v-bind:title="'Ekstra '+ingredient.Name"
+                                            v-on:click="updateIngredientCount(Edit, ingredient, 1, true)">
+                                        <i class="glyphicon glyphicon-plus"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger"
+                                            v-bind:title="'Fjern '+ingredient.Name"
+                                            v-on:click="updateIngredientCount(Edit, ingredient, -1, true)">
+                                        <i class="glyphicon glyphicon-remove"></i>
+                                    </button>
+                                </div>
+                                <strong v-if="ingredient.Count > 1">{{ingredient.Count}} &times; </strong>
+                                {{ingredient.Name}} (+{{ingredientSizePrice(Edit.Size, ingredient)}} kr)
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>Legg til ingredienser / tilbehør</h4>
+                        <div class="list-group">
+                            <a href="#" class="list-group-item" v-for="type in MultipleIngredientTypes" v-bind:class="{'active': EditType === type}" v-on:click="setEditType(type)">
+                                {{type.Name}} <span class="pull-right label label-info" v-if="type.Extra">Tilbehør</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-4" v-if="EditType !== null">
+                        <h4>Ingredienser ({{EditType.Name}})</h4>
+                        <ul class="list-group">
+                            <li class="list-group-item" v-for="ingredient in EditType.Ingredients">
+                                <div class="pull-right" style="margin-top: -5px">
+                                    <button class="btn btn-sm btn-success"
+                                            v-bind:title="'Legg til '+ingredient.Name"
+                                            v-on:click="updateIngredientCount(Edit, ingredient, 1, true)">
+                                        <i class="glyphicon glyphicon-plus"></i>
+                                    </button>
+                                </div>
+                                {{ingredient.Name}}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" v-on:click="Edit = null">Lukk</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop fade in" style="z-index: -1" v-on:click="Edit = null"></div>
+</div>
+
+<div class="modal show" v-if="ShouldConfirmOrder === true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" v-on:click="ShouldConfirmOrder = false"><span aria-hidden="true">&times;</span></button>
+                <h3 class="modal-title">
+                    <strong>Bekreft din ordre: </strong><br/>
+                    Vil du betale nå, eller ved <span v-if="Order.Deliver">levering</span><span v-if="!Order.Deliver">henting</span>?
+                </h3>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" v-if="ConfirmationError !== null">
+                    {{ConfirmationError}}
+                </div>
+                <ul class="list-group">
+                    <li class="list-group-item" v-for="line in Order.Lines">
+                        <h4>
+                            {{line.Pizza.Name}}
+                            <strong class="pull-right">
+                                <span v-if="line.Pizza.Size === 2">Stor</span>
+                                <span v-if="line.Pizza.Size === 1">Medium</span>
+                                <span v-if="line.Pizza.Size === 0">Liten</span>
+                            </strong>
+                        </h4>
+                        <small class="pull-right text-right">
+                            {{line.Count}} stk. &times; kr {{line.Pizza.Price.toFixed(2)}}<br/>
+                            <strong>kr {{(line.Count*line.Pizza.Price).toFixed(2)}}</strong>
+                        </small>
+                        <p>{{line.Pizza.Ingredients|commaSeparatedKey 'Name'}}</p>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Sum varer</strong>
+                        <span class="pull-right">kr {{OrderPrice.toFixed(2)}}</span>
+                    </li>
+
+                    <li class="list-group-item" v-if="Order.Deliver">
+                        <strong>Levering</strong>
+                        <span class="pull-right">+ kr {{FixedDeliveryPrice}}.00</span>
+                    </li>
+                </ul>
+
+                <ul class="nav nav-pills">
+                    <li v-bind:class="{'active': WillPayNow}"><a href="#" v-on:click="WillPayNow = true">Betal nå</a></li>
+                    <li v-bind:class="{'active': !WillPayNow}"><a href="#" v-on:click="WillPayNow = false">Betal når du får pizzaen</a></li>
+                </ul>
+
+                <hr/>
+
+                <div class="row" v-if="WillPayNow">
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="form_cardnumber">Kortnummer (VISA / Mastercard)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="glyphicon glyphicon-credit-card"></i></span>
+                                        <input class="form-control" id="form_cardnumber" type="text" placeholder="0000 0000 0000 0000" v-model="MaskedCardNumber" maxlength="19"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-7">
+                                <div class="form-group">
+                                    <label class="control-label" for="form_expiration">Utløper (MM/ÅÅ)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                        <input class="form-control" id="form_expiration" type="text" placeholder="00/00" v-model="MaskedCardExpiration" maxlength="5"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label class="control-label" for="form_cvc">CVC</label>
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="glyphicon glyphicon-check"></i></span>
+                                        <input class="form-control" id="form_cvc" type="text" placeholder="000" v-model="MaskedCardCVC" maxlength="3"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-success btn-block" v-on:click="submitPayNow()">Betal og send bestilling</button>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label" for="form_email">Kvittering på e-post</label>
+                            <input class="form-control" id="form_email" type="email" v-model="Order.Email" placeholder="navn@example.com"/>
+                        </div>
+                        <hr/>
+                        <em>Din betalingsinformasjon blir ikke sendt til oss, og behandles utelukkende av <a href="https://stripe.com/" target="_blank">Stripe</a>, leverandør av vår betalingsløsning.</em>
+                    </div>
+                </div>
+
+                <div class="row" v-if="!WillPayNow">
+                    <div class="col-md-6">
+                        <p>Når du trykker på knappen til under, vil du motta en SMS med en kode. Denne koden skrives deretter inn i feltet til høyre.</p>
+                        <hr/>
+                        <button class="btn btn-info btn-block" v-on:click="sendConfirmationCode()">Send kode til <strong>{{Order.Phone}}</strong></button>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <label for="form_confirmation_code">Kode fra SMS</label>
+                            <input class="form-control" id="form_confirmation_code" type="text" maxlength="5" v-model="Order.SMSCode"/>
+                        </div>
+                        <hr/>
+                        <button class="btn btn-success btn-block" v-on:click="submitOrder()" v-bind:disabled="Order.SMSCode.length !== 5">Send bestilling</button>
+                    </div>
+                </div>
+
+                <hr/>
+
+                <div class="alert alert-info">
+                    <p>
+                        Hvis du betaler nå, blir ordren bekreftet med en gang. Ønsker du å betale når du mottar pizzaen, må du bekrefte telefonnummeret ditt.
+                    </p>
+                    <p>
+                        Hvis du velger sistnevnte, vil du motta en SMS med en kode som må skrives inn på denne siden før bestillingen registreres.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade in" style="z-index: -1" v-on:click="ShouldConfirmOrder = false"></div>
+</div>
+
+<div class="fullscreen-loading" v-if="IsLoading">
+    <i class="glyphicon glyphicon-refresh"></i>
+    <h4>Laster...</h4>
+</div>
+</div>
+
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+
+<script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+<script src="/Scripts/Shared/order-helpers.js"></script>
+<script>
+    Stripe.setPublishableKey('@ViewBag.StripePublicKey');
+
+    var token = $('#__AjaxAntiForgeryForm input[name="__RequestVerificationToken"]').val();
+    var ingredientTypes = @Html.Raw(Json.Encode(ViewBag.IngredientTypes));
+    var pizzas = @Html.Raw(Json.Encode(ViewBag.Pizzas));
+    var hours = @Html.Raw(Json.Encode(ViewBag.Hours));
+    var fixedDeliveryPrice = @ViewBag.FixedDeliveryPrice;
+    var syncedFields = ['Order.CustomerName', 'Order.Phone', 'Order.Address', 'Order.ZipCode', 'Order.City', 'Order.Email'];
+
+    var vm = new Vue({
+        el: '#orderApp',
+        data: {
+            IngredientTypes: ingredientTypes,
+            Templates: pizzas,
+            FixedDeliveryPrice: fixedDeliveryPrice,
+
+            Edit: null,
+            EditType: null,
+            EditErrors: [],
+
+            Order: {
+                __RequestVerificationToken: token,
+                PaymentToken: '',
+                CustomerName: localStorage.getItem('Order.CustomerName') || '',
+                Phone: localStorage.getItem('Order.Phone') || '',
+                DeliveryTime: moment().toJSON(),
+                Deliver: false,
+
+                Address: localStorage.getItem('Order.Address') || '',
+                City: localStorage.getItem('Order.City') || '',
+                ZipCode: localStorage.getItem('Order.ZipCode') || '',
+
+                Email: localStorage.getItem('Order.Email') || '', // For order confirmation if paid immediately
+                SMSCode: '', // For orders with SMS confirmation instead
+
+                Lines: []
+            },
+
+            // These hold state that doesn't mean anything besides keeping track of things temporarily
+            IsLoading: false,
+            ShouldConfirmOrder: false,
+            WillPayNow: true,
+            UniqueIngredients: {},
+
+            // Card related
+            ConfirmationError: null,
+            CardNumber: '',
+            CardExpiration: '',
+            CardCVC: ''
+        },
+        methods: {
+            updateCity: function() {
+                if (this.Order.ZipCode.length !== 4) return;
+                this.Order.City = zipCodes[parseInt(this.Order.ZipCode)] || '';
+            },
+
+            addLine: function(template) {
+                var pizza = pizzaToPizzaInstance(template);
+                pizza.Size = SIZE_LARGE;
+                var line = {
+                    Pizza: pizza,
+                    Count: 1
+                }
+                this.Order.Lines.push(line);
+                return line;
+            },
+            removeLine: function(index) {
+                if (!confirm('Er du sikker på at du vil fjerne denne pizzaen fra din bestilling?')) return;
+                var removed = this.Order.Lines.splice(index, 1);
+                if (this.Edit === removed[0].Pizza) this.Edit = null;
+            },
+
+            // Pizza edit related
+            editPizza: function(pizza) {
+                this.Edit = pizza;
+            },
+            addLineAndEdit: function(template) {
+                var line = this.addLine(template);
+                this.editPizza(line.Pizza);
+            },
+            setEditType(type) {
+                this.EditType = type;
+            },
+
+            updateSize: function(line) {
+                line.Size = parseInt(line.Size); // Gets set to a string from the select dropdown, so turn it into a number.
+                var price = calculatePizzaPrice(line);
+                line.Price = price;
+            },
+            isTimeValid: function(time) {
+                return time.isAfter(moment().add(1, 'hours'));
+            },
+
+            // Helper from the order-helpers file.
+            getIngredientType: function(ingredient) {
+                return getIngredientType(ingredient);
+            },
+
+            // Pizza edit interface.
+            isIngredientUniqueType: function(ingredient) {
+                return this.UniqueIngredientTypes.filter(function(type) {
+                    return type.Ingredients.filter(function(ing) {
+                        return ing.Id === ingredient.Id;
+                    }).length === 1;
+                }).length === 1;
+            },
+
+            // Used in pizza edit box
+            ingredientCount: function(pizza, ingredientId) {
+                return ingredientCount(pizza, ingredientId);
+            },
+
+            ingredientForType: function(typeId) {
+                for (var i = 0; i < ingredientTypes.length; i++) {
+                    var type = ingredientTypes[i];
+                    if (type.Id !== typeId) continue;
+
+                    for (var j = 0; j < type.Ingredients.length; j++) {
+                        var ingredient = type.Ingredients[j];
+                        if (ingredient.Id === this.UniqueIngredients[typeId]) return ingredient;
+                    }
+                }
+            },
+
+            // Show price difference between new and currently selected ingredient
+            priceDiff: function(size, next, curr) {
+                var diff = 0;
+                if (!curr) return 0;
+
+                switch (size) {
+                    case SIZE_LARGE:
+                        diff = next.PriceLarge - curr.PriceLarge;
+                        break;
+                    case SIZE_MEDIUM:
+                        diff = next.PriceMedium - curr.PriceMedium;
+                        break;
+                    case SIZE_SMALL:
+                        diff = next.PriceSmall - curr.PriceSmall;
+                        break;
+                    default:
+                        return 0;
+                }
+
+                if (diff >= 0) return '+' + diff;
+                return diff.toString();
+            },
+
+            ingredientSizePrice: function(size, ingredient) {
+                switch (size) {
+                    case SIZE_LARGE:
+                        return ingredient.PriceLarge;
+                    case SIZE_MEDIUM:
+                        return ingredient.PriceMedium;
+                    case SIZE_SMALL:
+                        return ingredient.PriceSmall;
+                    default:
+                        return 0;
+                }
+            },
+
+            // Removes all ingredients in active "TypeUnique" ingredient type, and re-adds the newly selected one.
+            updateUniqueIngredients: function(pizza) {
+                updateUniqueIngredients(pizza, this.UniqueIngredients);
+            },
+
+            // Used in edit modal
+            updateIngredientCount: function(pizza, ingredient, numChange, calculatePrice) {
+                updateIngredientCount(pizza, ingredient, numChange, calculatePrice);
+                this.EditErrors = validatePizza(pizza);
+            },
+
+            confirmOrder: function() {
+                this.ErrorFields = validateOrder(this.Order);
+                if (this.ErrorFields.length > 0) {
+                    return;
+                }
+
+                this.ShouldConfirmOrder = true;
+            },
+
+            sendConfirmationCode: function() {
+                this.IsLoading = true;
+                var that = this;
+                $.post('@Url.Action("SendConfirmationCode", "Order")', {'phoneNumber': this.Order.Phone}, function(data) {
+                    console.log(data);
+                    that.IsLoading = false;
+                }).fail(function(response) {
+                    that.ConfirmationError = response.responseJSON.Error;
+                    that.IsLoading = false;
+                });
+            },
+
+            submitPayNow: function() {
+                this.ConfirmationError = null;
+                if (this.CardNumber.length !== 19 || this.CardExpiration.length !== 5 || this.CardCVC.length !== 3) {
+                    this.ConfirmationError = 'Feil i kortnummer, utløpsmåned og / eller sikkerhetskode (CVC)';
+                    return;
+                }
+
+                var expParts = this.CardExpiration.split('/');
+                var that = this;
+
+                var paymentInfo = {
+                    number: this.CardNumber,
+                    exp_month: parseInt(expParts[0]),
+                    exp_year: parseInt('20' + expParts[1]),
+                    cvc: this.CardCVC,
+
+                    name: this.Order.CustomerName
+                };
+
+                if (this.Order.Deliver) {
+                    paymentInfo['address_line1'] = this.Order.Address;
+                    paymentInfo['address_zip'] = this.Order.ZipCode;
+                    paymentInfo['address_city'] = this.Order.City;
+                }
+
+                this.IsLoading = true;
+                Stripe.card.createToken(paymentInfo, function(status, response) {
+                    if (status !== 200) {
+                        that.ConfirmationError = 'Det har oppstått et problem med betalingen: ';
+                        that.ConfirmationError += response.error.message;
+                        that.IsLoading = false;
+                        return;
+                    }
+                    that.Order.PaymentToken = response.id;
+                    that.submitOrder();
+                });
+            },
+
+            submitOrder: function() {
+                this.ConfirmationError = null;
+                this.IsLoading = true;
+                var that = this;
+                $.post('@Url.Action("CreateOrder", "Order")', this.Order, function(response) {
+                    window.location = '@Url.Action("Receipt", "Order")?thanks=true&key='+response.ReceiptKey;
+                }).fail(function(response) {
+                    that.ConfirmationError = 'Det har oppstått et problem: ';
+                    that.ConfirmationError += response.responseJSON.Error;
+                    that.IsLoading = false;
+                });
+            }
+        },
+        computed: {
+            TimeChoices: function() {
+                var baseTime = moment(this.Order.DeliveryTime);
+                baseTime.hour(10);
+                baseTime.minute(0);
+                baseTime.second(0);
+                baseTime.milliseconds(0);
+
+                var dayIndex = (baseTime.day() + 6) % 7;
+                var day = hours[dayIndex];
+
+                var startTime = day.OpeningHours;
+                var endTime = day.ClosingHours;
+                if (this.Order.Deliver) {
+                    startTime = day.DeliveryStart;
+                    endTime = day.DeliveryEnd;
+                }
+                var t1 = startTime.Hours * 100 + startTime.Minutes;
+                var t2 = endTime.Hours * 100 + endTime.Minutes;
+
+                var hour = baseTime.hours();
+                var times = [];
+                var minTime = moment().add(1, 'hours');
+                while (hour < 23) {
+                    baseTime = baseTime.clone().add(15, 'minutes');
+
+                    var checkTime = baseTime.hour()*100 + baseTime.minute();
+
+                    // Only add time if in the present and within opening hours / delivery hours if delivery chosen.
+                    if (baseTime.isAfter(minTime) && checkTime >= t1 && checkTime <= t2) {
+                        times.push(baseTime);
+                    }
+
+                    hour = baseTime.hour();
+                }
+
+                return times;
+            },
+            IsOrderValid: function() {
+                if (this.Order.Lines.length === 0) return false;
+                if (this.Order.CustomerName.length < 2) return false;
+                if (this.Order.Phone.length < 8) return false;
+
+                var deliveryTime = moment(this.Order.DeliveryTime);
+                if (deliveryTime.minute() % 15 !== 0 || deliveryTime.second() !== 0 || deliveryTime.millisecond() !== 0) return false;
+
+                return true;
+            },
+            OrderPrice: function() {
+                return calculateOrderPrice(this.Order);
+            },
+            MultipleIngredientTypes: function() {
+                return this.IngredientTypes.filter(function(t) {
+                    return !t.Unique;
+                });
+            },
+            UniqueIngredientTypes: function() {
+                return this.IngredientTypes.filter(function(t) {
+                    return t.Unique;
+                });
+            },
+            MaskedCardNumber: {
+                get: function() {
+                    return this.CardNumber;
+                },
+                set: function(val) {
+                    var numbers = val.replace(' ', '').replace(/[^0-9]/g, '');
+                    this.CardNumber = numbers.substr(0, 4) + ' ' + numbers.substr(4, 4) + ' ' + numbers.substr(8, 4) + ' ' + numbers.substr(12, 4);
+                }
+            },
+            MaskedCardExpiration: {
+                get: function() {
+                    if (this.CardExpiration.length < 5) return '';
+                    return this.CardExpiration;
+                },
+                set: function(val) {
+                    var numbers = val.replace('/', '').replace(/[^0-9]/, '');
+                    this.CardExpiration = numbers.substr(0, 2) + '/' + numbers.substr(2, 2);
+                }
+            },
+            MaskedCardCVC: {
+                get: function() {
+                    return this.CardCVC;
+                },
+                set: function(val) {
+                    var numbers = val.replace(/[^0-9]/, '');
+                    this.CardCVC = numbers.substr(0, 3);
+                }
+            }
+        }
+    });
+
+    var keepInLocalStorage = function(keys) {
+        keys.forEach(function(key) {
+            vm.$watch(key, function(val) {
+                localStorage.setItem(key, val);
+            });
+        });
+    }
+    keepInLocalStorage(syncedFields);
+</script>

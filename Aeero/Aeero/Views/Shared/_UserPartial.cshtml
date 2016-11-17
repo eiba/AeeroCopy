@@ -1,0 +1,65 @@
+﻿@using Aeero.Models
+@using Microsoft.AspNet.Identity
+@using Microsoft.AspNet.Identity.EntityFramework
+
+@if (Request.IsAuthenticated)
+{
+    using (Html.BeginForm("LogOff", "Account", new
+    {
+        area = ""
+    }, FormMethod.Post, new {id = "logoutForm"}))
+    {
+        @Html.AntiForgeryToken()
+    }
+
+    var store = new UserStore<ApplicationUser>(new ApplicationDbContext());
+    var manager = new UserManager<ApplicationUser>(store);
+
+    var user = manager.FindById(User.Identity.GetUserId());
+    if (user == null)
+    {
+        Response.Redirect("/");
+    }
+    else
+    {
+        var areaName = Request.Path.Split('/')[1];
+        var url = "";
+        
+        if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+        {
+            url = Url.Action("Index", "Home", new {area = "Admin"});
+            if (areaName != url.Split('/')[1])
+            {
+                <li><a href="@url">Adminpanel</a></li>
+            }
+
+            url = Url.Action("Index", "Home", new {area = "Touch" });
+            if (areaName != url.Split('/')[1])
+            {
+                <li><a href="@url">Ansattpanel</a></li>
+            }
+        }
+        else if (User.IsInRole("Ansatt"))
+        {
+            url = Url.Action("Index", "Home", new { area = "Touch" });
+            if (areaName != url.Split('/')[1])
+            {
+                <li><a href="@url">Ansattpanel</a></li>
+            }
+        }
+        <li>
+            <a href="@Url.Action("Index", "Manage", new {area = ""})">
+                <span class="hidden-md">Du er logget inn med @user.Email</span>
+                <i class="glyphicon glyphicon-user"></i>
+            </a>
+        </li>
+    }
+    
+    <li><a href="javascript:document.getElementById('logoutForm').submit()">Logg ut <i class="glyphicon glyphicon-log-out"></i></a></li>
+}
+else
+{
+    <ul class="nav navbar-nav navbar-right">
+        <li>@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+    </ul>
+}

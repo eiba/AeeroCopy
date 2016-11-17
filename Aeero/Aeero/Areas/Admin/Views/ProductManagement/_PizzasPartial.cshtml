@@ -1,0 +1,184 @@
+﻿@using Aeero.Models
+@model Aeero.Areas.Admin.Models.PizzaModelExtended
+
+
+@using (Ajax.BeginForm("showPizzaCreate", "ProductManagement", null, new AjaxOptions
+{
+    UpdateTargetId = "pizzaModal",
+    InsertionMode = InsertionMode.Replace,
+    HttpMethod = "GET",
+
+
+}, new { @class = "form-horizontal", role = "form"  }))
+{
+    <button id="show-modal" type="submit" class="btn btn-primary j"><b>Legg til pizza</b></button>
+}
+
+<br /><br />
+<input type="checkbox" id="checkbox3"> Vis kun aktive produkter
+@using (Ajax.BeginForm("EditShow", "ProductManagement", new { k = true, type = "Pizza" }, new AjaxOptions
+{
+
+    UpdateTargetId = "updatePizzas",
+    InsertionMode = InsertionMode.Replace,
+    HttpMethod = "POST"
+}
+, new { id = "AjaxxxForm" }))
+{
+}
+@using (Ajax.BeginForm("EditShow", "ProductManagement", new { k = false, type = "Pizza" }, new AjaxOptions
+{
+
+    UpdateTargetId = "updatePizzas",
+    InsertionMode = InsertionMode.Replace,
+    HttpMethod = "POST"
+
+}
+, new { id = "kkk" }))
+{
+}
+
+<script>
+    $(document).ready(function() {
+        var check = '@Model.show';
+        if (check ==='True') {
+            $('#checkbox3').prop('checked', true);
+        }
+        $('#checkbox3').change(function() {
+            if ($(this).is(":checked")) {
+
+                $("form#AjaxxxForm").submit();
+            } else {
+                $("form#kkk").submit();
+            }
+        });
+    });
+</script>
+
+<div class="col-md-10"></div>
+<div class="col-md-2">
+    <div class="text-danger">
+        @ViewBag.Error
+    </div>
+    <div class="text-success">
+        @ViewBag.success
+    </div>
+</div>
+
+<h2>Pizzaer</h2>
+<div id="pizzaModal"></div>
+<table class="table table-hover">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Pizzas.GetEnumerator().Current.Name)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Pizzas.GetEnumerator().Current.PriceSmall)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Pizzas.GetEnumerator().Current.PriceMedium)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Pizzas.GetEnumerator().Current.PriceLarge)
+        </th>
+        <th></th>
+    </tr>
+    
+    @foreach (var item in Model.Pizzas)
+    {
+        if (!Model.show || (Model.show && item.isActive))
+        {
+            var detailsId = item.PizzaId + "cba";
+            var editId = item.PizzaId + "cbb";
+            var deleteId = item.PizzaId + "cbc";
+            var uploadId = item.PizzaId + "vbc";
+            var pizza = "";
+            var elementid = "";
+            var btnTxt = "Deaktiver";
+            if (item.isActive == false)
+            {
+                elementid = "greyout";
+                btnTxt = "Aktiver";
+            }
+            if (item.PizzaId.ToString() == @ViewBag.SuccessId)
+            {
+                pizza = "success";
+            }
+            else if (item.PizzaId.ToString() == @ViewBag.FailId)
+            {
+                pizza = "danger";
+            }
+            <tr class="@pizza">
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.PriceSmall)
+                </td>
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.PriceMedium)
+                </td>
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.PriceLarge)
+                </td>
+                <td style="width: 405px">
+                    @using (Ajax.BeginForm("showPizzaDetails", "ProductManagement", new {id = @item.PizzaId}, new AjaxOptions
+                    {
+                        UpdateTargetId = "pizzaModal",
+                        InsertionMode = InsertionMode.Replace,
+                        HttpMethod = "GET",
+
+
+                    }, new {@class = "form-horizontal", role = "form", id = detailsId}))
+                    {
+                        <button type="submit" class="btn btn-primary j"><b>Detaljer</b></button>
+
+                    }
+
+                    @using (Ajax.BeginForm("showPizzaEdit", "ProductManagement", new {id = @item.PizzaId}, new AjaxOptions
+                    {
+                        UpdateTargetId = "pizzaModal",
+                        InsertionMode = InsertionMode.Replace,
+                        HttpMethod = "GET",
+
+
+                    }, new {@class = "form-horizontal", role = "form", id = editId}))
+                    {
+                        <button type="submit" class="btn btn-primary j"><b>Rediger</b></button>
+                    }
+                    @using (Ajax.BeginForm("showPizzaUpload", "ProductManagement", new {id = @item.PizzaId}, new AjaxOptions
+                    {
+                        UpdateTargetId = "pizzaModal",
+                        InsertionMode = InsertionMode.Replace,
+                        HttpMethod = "GET"
+
+                    }, new {@class = "form-horizontal", role = "form", id = uploadId}))
+                    {
+                        <button type="submit" class="btn btn-primary j"><b>Bilde</b></button>
+                    }
+
+                    @using (Ajax.BeginForm("Deactivate", "Pizzas", null, new AjaxOptions
+                    {
+                        UpdateTargetId = "updatePizzas",
+                        InsertionMode = InsertionMode.Replace,
+                        HttpMethod = "POST"
+
+                    }, new {@class = "form-horizontal", role = "form", id = deleteId}))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-actions no-color">
+                            <input type="hidden" name="id" value=@item.PizzaId>
+                        </div>
+                        <button type="submit" class="btn btn-primary j"><b>@btnTxt</b></button>
+                    }
+
+
+
+                </td>
+            </tr>
+        }
+    }
+
+</table>
+

@@ -1,0 +1,97 @@
+﻿@using Aeero.Areas.Admin.Controllers
+@using Aeero.Models
+@using Microsoft.AspNet.Identity
+@using Microsoft.AspNet.Identity.EntityFramework
+@model Aeero.Models.RegisterViewModel
+@{
+    ViewBag.Title = "Opprett ansatt";
+}
+
+<h2>@ViewBag.Title</h2>
+
+@using (Html.BeginForm("RegisterEmployee", "HRManagement", FormMethod.Post, new {@class = "form-horizontal", role = "form"}))
+{
+    @Html.AntiForgeryToken()
+    <hr/>
+    @Html.ValidationSummary("", new {@class = "text-danger"})
+    <div class="form-group">
+        @Html.LabelFor(m => m.firstName, new {@class = "col-md-2 control-label"})
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.firstName, new {@class = "form-control"})
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.lastName, new {@class = "col-md-2 control-label"})
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.lastName, new {@class = "form-control"})
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Address, new {@class = "col-md-2 control-label"})
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.Address, new {@class = "form-control"})
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.City, new {@class = "col-md-2 control-label"})
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.City, new {@class = "form-control"})
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.zipCode, new {@class = "col-md-2 control-label"})
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.zipCode, new {@class = "form-control"})
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Phone, new {@class = "col-md-2 control-label"})
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.Phone, new {@class = "form-control"})
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Email, new {@class = "col-md-2 control-label"})
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.Email, new {@class = "form-control"})
+        </div>
+    </div>
+
+    var userManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(new ApplicationDbContext()));
+    ApplicationUser userr = userManager.FindByIdAsync(User.Identity.GetUserId()).Result;
+    var roleNr = userr.roleNr;
+    HRManagementController HR = new HRManagementController();
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.UserRole, new {@class = "col-md-2 control-label"})
+        <div class="col-md-10">
+            <select name="UserRole" class="form-control">
+                @for (int i = 1; i < roleNr; i++)
+                {
+                    <option value=@HR.ResolveUserRole(i)>@HR.ResolveUserRole(i)</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Password, new {@class = "col-md-2 control-label"})
+        <div class="col-md-10">
+            @Html.PasswordFor(m => m.Password, new {@class = "form-control"})
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.ConfirmPassword, new {@class = "col-md-2 control-label"})
+        <div class="col-md-10">
+            @Html.PasswordFor(m => m.ConfirmPassword, new {@class = "form-control"})
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" class="btn btn-primary" value="Registrer"/>
+        </div>
+    </div>
+}
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

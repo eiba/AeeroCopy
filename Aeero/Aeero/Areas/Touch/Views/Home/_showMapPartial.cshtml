@@ -1,0 +1,207 @@
+﻿
+@using Aeero.Models
+@using Antlr.Runtime
+@model Aeero.Areas.Touch.Models.MapModel
+
+@{
+    var vueId = "a" + Model.Order.Id;
+    var modalId = "b" + Model.Order.Id;
+    var dest = Model.Order.Address + ", " + Model.Order.ZipCode + " " + Model.Order.City + ", Norway";
+    var showDest = Model.Order.Address + ", " + Model.Order.ZipCode + " " + Model.Order.City;
+    var origin = Model.OriginAdress;
+
+}
+<div id="@vueId">
+
+    <modal :show.sync="showModal">
+        <h3 slot="header">
+            <div class="row">
+                <div class="col-sm-9">
+                    @showDest <br/><br/>
+                    <p id="time" style="color: black; font-size: 70%;"></p>
+                </div>
+                <div class="col-sm-3">
+                    <button class="btn btn-primary btn-change-status" onclick="getTime(true)">Kalkuler fra min posisjon</button>
+                </div>
+                </div>
+        </h3>
+        <h5 slot="body">
+            <div id="map" class="map"></div>
+        </h5>
+    </modal>
+</div>
+
+<script type="x/template" id="@modalId">
+    <div class="modal-mask" v-on:click="close" v-show="show" transition="modal">
+        <div class="modal-wrapper">
+            <div class="modal-container" v-on:click.stop style="width: 875px;">
+
+                <div class="modal-header">
+                    <slot name="header">
+                        
+                    </slot>
+                </div>
+
+                <div class="modal-body">
+                    <slot name="body">
+                    </slot>
+                    
+                </div>
+
+                <div class="modal-footer">
+                    <slot name="footer">
+                        <button class="btn btn-primary btn-lg" id="knapp" v-on:click="closeButton">
+                            OK
+                        </button>
+                    </slot>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script>
+
+    Vue.component('modal', {
+        template: '#@modalId',
+        props: {
+            show: {
+                type: Boolean,
+                required: true,
+                twoWay: true
+
+            }
+        },
+        methods: {
+            close: function() {
+                this.show = false;
+            },
+            closeButton: function () {
+                    this.show = false;
+            },
+
+            showMethod: function() {
+                this.showModal = true;
+            }
+            },
+
+        ready: function() {
+            this.show = true;
+
+            getTime(false);
+            resizeMap();
+
+            document.addEventListener("keydown", (e) => {
+                if (this.show && e.keyCode == 27) {
+                    this.close();
+                }
+                else if (this.show && e.keyCode == 13) {
+                    this.closeButton();
+                }
+
+            });
+
+        }
+    });
+    new Vue({
+        el: '#@vueId',
+        data: {
+            showModal: false,
+
+        },
+        methods: {
+            showModalf: function() {
+
+                this.showModal = true;
+            }
+
+        }
+    });
+
+    var map;
+    function getTime(geo) {
+
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: 58.3404833, lng: 8.5907185 },
+            zoom: 10
+        });
+        var position = '@origin';
+        if (geo) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+
+                    position = new google.maps.LatLng(position.coords.latitude,
+                        position.coords.longitude);
+                    calculate(position);
+                }, function() {
+                    handleLocationError(true);
+                });
+            } else {
+                handleLocationError(false);
+            }
+        } else {
+            calculate(position);
+        }
+    };
+        function calculate(pos){
+        var service = new google.maps.DistanceMatrixService();
+        var directionsService = new google.maps.DirectionsService;
+        var directionsDisplay = new google.maps.DirectionsRenderer;
+        directionsDisplay.setMap(map);
+        service.getDistanceMatrix(
+            {
+                origins: [pos],
+                destinations: ['@dest'],
+                travelMode: google.maps.TravelMode.DRIVING,
+                avoidHighways: false,
+                avoidTolls: true
+            },
+            function (response, status) {
+                var time = document.getElementById("time");
+
+                if (status == "OK") {
+                    time.innerHTML = response.rows[0].elements[0].duration.text + " / " + response.rows[0].elements[0].distance.text;
+                } else {
+                    alert("Error: " + status);
+                }
+            }
+        );
+    calculateAndDisplayRoute(directionsService, directionsDisplay, pos);
+};
+    
+    function calculateAndDisplayRoute(directionsService, directionsDisplay, origin) { 
+        directionsService.route({
+            origin: origin,
+            destination:'@dest',                
+            travelMode: google.maps.TravelMode.DRIVING,
+            avoidHighways: false,
+            avoidTolls: true
+        }, function (response, status) {
+            if (status === google.maps.DirectionsStatus.OK) {
+                directionsDisplay.setDirections(response);
+            } else {
+                window.alert('Error: ' + status);
+            }
+        });
+    }
+    function handleLocationError(browserHasGeolocation) {
+        if (browserHasGeolocation) {
+            alert('Error: Geolokasjon feilet');
+        } else {
+            alert('Error: Geolokasjon er ikke støttet');
+        }
+    }
+
+    function resizeMap() {
+        if (typeof map == "undefined") return;
+        setTimeout(function () { resizingMap(); }, 400);
+    }
+
+    function resizingMap() {
+        if (typeof map == "undefined") return;
+        var center = map.getCenter();
+        google.maps.event.trigger(map, "resize");
+        map.setCenter(center);
+    }
+</script>

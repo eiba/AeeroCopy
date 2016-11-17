@@ -1,0 +1,128 @@
+﻿@using System.Collections
+@using Aeero.Areas.Admin.Controllers
+@using Aeero.Models
+@using Microsoft.AspNet.Identity
+@using Microsoft.AspNet.Identity.EntityFramework
+@model Aeero.Models.ChangeProfile
+
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2>Rediger bruker</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true)
+        @Html.HiddenFor(model => model.Id)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.firstName, new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.firstName, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.firstName)
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.lastName, new {@class = "control-label col-md-2"})
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.lastName, new {@class = "form-control"})
+                @Html.ValidationMessageFor(model => model.lastName)
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Adress, new {@class = "control-label col-md-2"})
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.Adress, new {@class = "form-control"})
+                @Html.ValidationMessageFor(model => model.Adress)
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.City, new {@class = "control-label col-md-2"})
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.City, new {@class = "form-control"})
+                @Html.ValidationMessageFor(model => model.City)
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.zipCode, new {@class = "control-label col-md-2"})
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.zipCode, new {@class = "form-control"})
+                @Html.ValidationMessageFor(model => model.zipCode)
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Phone, new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.Phone, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Phone)
+            </div>
+        </div>
+        @{
+            var userManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(new ApplicationDbContext()));
+            ApplicationUser userr = userManager.FindByIdAsync(User.Identity.GetUserId()).Result;
+            var roleNr = userr.roleNr;
+            HRManagementController HR = new HRManagementController();
+
+        }
+        <div class="form-group">
+            @Html.LabelFor(model => model.UserRole, new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <select name="UserRole" class="form-control">
+                    <option value=@Model.UserRole>@Model.UserRole</option>
+                    @for (int i = 1; i < roleNr; i++)
+                    {
+                        if (HR.ResolveUserRole(i) != Model.UserRole)
+                        {
+                            <option value=@HR.ResolveUserRole(i)>@HR.ResolveUserRole(i)</option>
+                        }
+                    }
+                </select>
+                @Html.ValidationMessageFor(model => model.UserRole)
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Email, new {@class = "control-label col-md-2"})
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.Email, new {@class = "form-control"})
+                @Html.ValidationMessageFor(model => model.Email)
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.Password, new { @class = "col-md-2 control-label" })
+            <div class="col-md-10">
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Password)
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.ConfirmPassword, new { @class = "col-md-2 control-label" })
+            <div class="col-md-10">
+                @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ConfirmPassword)
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Lagre" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    &#8592 @Html.ActionLink("Tilbake til brukerlisten", "Index")
+</div>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+
+
+

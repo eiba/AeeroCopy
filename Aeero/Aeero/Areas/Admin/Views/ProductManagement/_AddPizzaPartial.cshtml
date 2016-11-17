@@ -1,0 +1,287 @@
+﻿@model Aeero.Models.Pizza
+@{
+    var isActive = true;
+}
+
+<div id="app1">
+
+    <modal :show.sync="showModal">
+        <h3 slot="header">Legg til pizza</h3>
+        <h5 slot="body">
+            
+            @using (Ajax.BeginForm("Create", "Pizzas", null, new AjaxOptions
+            {
+                UpdateTargetId = "updatePizzas",
+                InsertionMode = InsertionMode.Replace,
+                HttpMethod = "POST",
+
+            }, new { @*enctype = "multipart/form-data",*@ @class = "form-horizontal", role = "form", id = "form1"}))
+            {
+                @Html.AntiForgeryToken()
+
+                
+                <div>
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.Name, htmlAttributes: new {@class = "control-label col-md-2"})
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.Name, new {htmlAttributes = new {@class = "form-control", required = "required", id = "Name"}})
+                            @Html.ValidationMessageFor(model => model.Name, "", new {@class = "text-danger"})
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.PriceSmall, htmlAttributes: new {@class = "control-label col-md-2"})
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.PriceSmall, new {htmlAttributes = new {@class = "form-control", required = "required", id = "PriceSmall"}})
+                            @Html.ValidationMessageFor(model => model.PriceSmall, "", new {@class = "text-danger"})
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.PriceMedium, htmlAttributes: new {@class = "control-label col-md-2"})
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.PriceMedium, new {htmlAttributes = new {@class = "form-control", required = "required", id = "PriceMedium"}})
+                            @Html.ValidationMessageFor(model => model.PriceMedium, "", new {@class = "text-danger"})
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.PriceLarge, htmlAttributes: new {@class = "control-label col-md-2"})
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.PriceLarge, new {htmlAttributes = new {@class = "form-control", required = "required", id = "PriceLarge"}})
+                            @Html.ValidationMessageFor(model => model.PriceLarge, "", new {@class = "text-danger"})
+                        </div>
+                    </div>
+                    @*
+                    <div class="form-group">
+                        @Html.Label("Avatar", new {@class = "control-label col-md-2"})
+                        <div class="col-md-10">
+                            <input type="file" id="Avatar" name="upload"/>
+                        </div>
+                    </div>*@
+
+                    @{
+                        int i = -1;
+                    }
+
+                    @foreach (var type in (List<IngredientType>) ViewBag.IngredientTypes)
+                    {
+                        if (type.isActive) { 
+                        <div class="form-group">
+                            <label class="control-label col-md-2">@type.TypeName</label>
+                            <div class="col-md-10">
+                                @if (type.TypeUnique)
+                                {
+                                    i++;
+                                    <input name="Ingredients.Index" value="@i" type="hidden">
+                                    <select name="Ingredients[@i].IngredientId" class="form-control">
+                                        @foreach (var ingredient in type.Ingredients)
+                                        {
+                                            if (ingredient.isActive)
+                                            {
+                                                <option value="@ingredient.IngredientId">@ingredient.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                    <input name="Ingredients[@i].Count" value="1" type="hidden"/>
+                                }
+                                else
+                                {
+                                    <table class="table">
+                                        <thead>
+                                        <tr>
+                                            <th>&nbsp;</th>
+                                            <th>Mengde</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach (var ingredient in type.Ingredients)
+                                        {
+                                            i++;
+                                            if (ingredient.isActive)
+                                            {
+                                                <tr>
+                                                    <td>@ingredient.Name</td>
+                                                    <td>
+                                                        <input name="Ingredients.Index" value="@i" type="hidden">
+                                                        <input type="hidden" name="Ingredients[@i].IngredientId" value="@ingredient.IngredientId"/>
+                                                        <input type="number" name="Ingredients[@i].Count" min="0" class="form-control" value="0"/>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                        </tbody>
+                                    </table>
+                                }
+                            </div>
+                        </div>
+                    }
+                    }
+                    @Html.HiddenFor(model => @isActive)
+                </div>
+            }
+
+        </h5>
+    </modal>
+
+</div>
+
+<script type="x/template" id="ModalId1">
+    <div class="modal-mask" v-on:click="close" v-show="show" transition="modal">
+        <div class="modal-wrapper">
+            <div class="modal-container" v-on:click.stop style="width: 500px;">
+
+                <div class="modal-header">
+                    <slot name="header">
+                    </slot>
+                </div>
+
+                <div class="modal-body">
+                    <slot name="body">
+
+                    </slot>
+
+                </div>
+
+                <div class="modal-footer">
+                    <slot name="footer">
+                        <button class="modal-default-button btn-danger btn" id="knapp" v-on:click="closeButton">
+                            Legg til
+                        </button>
+                    </slot>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script>
+
+    Vue.component('modal', {
+        template: '#ModalId1',
+        props: {
+            show: {
+                type: Boolean,
+                required: true,
+                twoWay: true
+
+            }
+        },
+        methods: {
+            close: function() {
+                this.show = false;
+                this.clearFields();
+            },
+            closeButton: function () {
+
+                if ($("form#form1").valid()) {
+                    $("form#form1").submit();
+                    this.show = false;
+                    this.clearFields();
+                }
+
+            },
+            showMethod: function() {
+                this.showModal = true;
+            },
+
+            clearFields: function () {
+                $("#Name").val("");
+                $("#PriceSmall").val("");
+                $("#PriceMedium").val("");
+                $("#PriceLarge").val("");
+
+
+
+            },
+        },
+        ready: function() {
+            this.show = true;
+            document.addEventListener("keydown", (e) => {
+                if (this.show && e.keyCode == 27) {
+                    this.close();
+                }
+                else if (this.show && e.keyCode == 13) {
+                    this.closeButton();
+                }
+
+            });
+
+        }
+    });
+    new Vue({
+        el: '#app1',
+        data: {
+            showModal: false,
+
+        },methods: {
+            showModalf: function () {
+            this.clearFields();
+            this.showModal = true;
+            },
+            clearFields: function () {
+                $("#Name").val("");
+                $("#PriceSmall").val("");
+                $("#PriceMedium").val("");
+                $("#PriceLarge").val("");
+
+            },
+
+            }
+    });
+   /*$(function () {
+        $("#form1").submit(function (event) {
+            var dataString;
+            event.preventDefault();
+            var action = $("#form1").attr("action");
+            if ($("#form1").attr("enctype") == "multipart/form-data") {
+                //this only works in some browsers.
+                //purpose? to submit files over ajax. because screw iframes.
+                //also, we need to call .get(0) on the jQuery element to turn it into a regular DOM element so that FormData can use it.
+                dataString = new FormData($("#form1").get(0));
+                contentType = false;
+                processData = false;
+            } else {
+                // regular form, do your own thing if you need it
+            }
+            $.ajax({
+                type: "POST",
+                url: action,
+                data: dataString,
+                //dataType: "json", //change to your own, else read my note above on enabling the JsonValueProviderFactory in MVC
+                contentType: contentType,
+                processData: processData,
+                /*success: function (data) {
+                    //BTW, data is one of the worst names you can make for a variable
+                    //handleSuccessFunctionHERE(data);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    //do your own thing
+                    alert("fail");
+                }
+            });
+        }); //end .submit()
+    });
+    window.addEventListener("submit", function (e) {
+        var form = e.target;
+        if (form.getAttribute("enctype") === "multipart/form-data") {
+            if (form.dataset.ajax) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                var xhr = new XMLHttpRequest();
+                xhr.open(form.method, form.action);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        if (form.dataset.ajaxUpdate) {
+                            var updateTarget = document.querySelector(form.dataset.ajaxUpdate);
+                            if (updateTarget) {
+                                updateTarget.innerHTML = xhr.responseText;
+                            }
+                        }
+                    }
+                };
+                xhr.send(new FormData(form));
+            }
+        }
+    }, true);*/
+    
+</script>

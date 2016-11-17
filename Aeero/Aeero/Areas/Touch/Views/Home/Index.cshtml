@@ -1,0 +1,196 @@
+﻿@model List<Aeero.Models.Order>
+
+@{
+    ViewBag.Title = "Siste aktive ordre";
+}
+<script src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgrQxme9MHcInAgI3LzGPGE8GdjPcZ7UA"></script>
+
+<div id="deliveryModal"></div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2>
+            @ViewBag.Title
+            <small class="pull-right" id="orderCountdown">Henter nye ordre om 10 sekunder</small>
+        </h2>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-condensed" id="orderList">
+                <tr>
+                    <th>Kunde</th>
+                    <th>Telefon</th>
+                    <th>Levering</th>
+                    <th>&nbsp;</th>
+                    <th style="min-width: 150px">Pizzaer</th>
+                    <th class="text-center" style="width: 160px">Forrige</th>
+                    <th class="text-center">Stadie</th>
+                    <th class="text-center" style="width: 160px">Neste</th>
+                </tr>
+                @foreach (var item in Model)
+                {
+                    var formId = item.Id + "k";
+                    <tr>
+                        <td>
+                            @item.CustomerName
+                            @if (item.State == "new" || item.State == "confirmed")
+                            {
+                                <button class="btn btn-danger cancel-order-btn pull-right" data-orderid="@item.Id">Avbestill / fjern</button>
+                            }
+                        </td>
+                        <td>@item.Phone</td>
+                        <td>
+                            <strong>@(item.Deliver ? "Leveres" : "Hentes")</strong> @item.DeliveryTime.ToLocalTime()
+                        </td>
+                        <td>
+                            @if (item.Deliver)
+                            {
+                                using (Ajax.BeginForm("ShowMap", "Home", new {id = item.Id}, new AjaxOptions
+                                {
+                                    UpdateTargetId = "deliveryModal",
+                                    InsertionMode = InsertionMode.Replace,
+                                    HttpMethod = "GET",
+
+
+                                }, new {@class = "form-horizontal", role = "form", id = formId}))
+                                {
+                                    <button type="submit" class="btn btn-primary btn-change-status">Se kart</button>
+                                }
+                            }
+                        </td>
+
+                        <td>
+                            <ul class="list-unstyled">
+                                @foreach (var orderLine in item.Lines)
+                                {
+                                    <li style="padding-top: 5px">
+                                        <span class="label label-success">
+                                            &times;@orderLine.Count
+                                        </span>
+                                        @if (orderLine.Changed)
+                                        {
+                                            var tooltipText = "";
+                                            foreach (var ingredient in orderLine.Ingredients)
+                                            {
+                                                tooltipText += ingredient.Ingredient.Name;
+                                                tooltipText += (ingredient.Count > 1 ? " (" + ingredient.Count + ")" : "");
+                                                tooltipText += (orderLine.Ingredients.LastIndexOf(ingredient) < orderLine.Ingredients.Count - 1 ? ", " : "");
+                                            }
+
+                                            <strong data-toggle="tooltip" data-placement="left" title="@tooltipText">
+                                                &nbsp; @orderLine.Description *
+                                            </strong>
+                                        }
+                                        else
+                                        {
+                                            <span>&nbsp; @orderLine.Description</span>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </td>
+
+                        <td>
+                            @using (Html.BeginForm(null, null, FormMethod.Post, new {id = "__AjaxAntiForgeryForm"}))
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden" name="id" value="@item.Id">
+                                <input type="hidden" name="pizzaId" value="@item.Id">
+                                <input type="hidden" name="type" value="Reset"/>
+                                <button id="btnpost" class="btn btn-block btn-warning btn-prev-status">
+                                    <i class="glyphicon glyphicon-circle-arrow-left"></i>
+                                    @item.PrevStateLabel()
+                                </button>
+                            }
+                        </td>
+
+                        <td class="text-center"><span class="label label-default">@item.StateLabel()</span></td>
+
+                        <td>
+                            @using (Html.BeginForm(null, null, FormMethod.Post, new {id = "__AjaxAntiForgeryForm"}))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Id">
+                                <input type="hidden" name="pizzaId" value="@item.Id">
+                                <input type="hidden" name="type" value="Bekreft"/>
+                                <button id="btnpost" class="btn btn-block btn-success btn-next-status">
+                                    <i class="glyphicon glyphicon-circle-arrow-right"></i>
+                                    @item.NextStateLabel()
+                                </button>
+                            }
+                        </td>
+
+                    </tr>
+                }
+
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="5">Ingen nye ordre funnet.</td>
+                    </tr>
+                }
+            </table>
+        </div>
+
+        <hr/>
+
+        <button id="updateOrdersBtn" class="btn btn-lg btn-primary">Oppdater</button>
+        <strong class="pull-right">* pizzaen er endret</strong>
+    </div>
+</div>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+
+<script>
+    $(function() {
+        var reloadPortion = location.pathname + ' #orderList';
+        var seconds = 11;
+        var updateOrderList = function() {
+            seconds = 10;
+            $('.table-responsive').load(reloadPortion);
+        };
+
+        setInterval(function() {
+            seconds--;
+            if (seconds <= 0) {
+                updateOrderList();
+            }
+            $('#orderCountdown').text('Henter nye ordre om ' + seconds + ' sekunder');
+        }, 1000);
+
+        // Reset timer if someone interacts with the page.
+        $('body').on('click', function() {
+            seconds = 11;
+        });
+
+        $('#updateOrdersBtn').on('click', function() {
+            updateOrderList();
+        });
+
+        $(document).on('click', '.cancel-order-btn', function () {
+            if (!confirm('Vil du virkelig avbestille denne ordren?')) return;
+
+            $.post('@Url.Action("CancelOrder", "Home")', {
+                id: $(this).data('orderid'),
+                '__RequestVerificationToken': $('#__AjaxAntiForgeryForm input[name="__RequestVerificationToken"]').val()
+            }, function () {
+                updateOrderList();
+                alert("Ordren er fjernet og avbestilt.");
+            }).error(function() {
+                alert("Kunne ikke slette ordre (kanskje den var betalt allerede?).");
+            });
+        });
+    });
+
+    // post method button
+    $('#btnpost')
+        .on('click',
+            function () {
+                $('#hidden-form').submit();
+            });
+</script>
+

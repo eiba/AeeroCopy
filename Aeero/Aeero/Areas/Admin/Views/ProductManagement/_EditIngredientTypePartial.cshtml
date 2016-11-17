@@ -1,0 +1,179 @@
+﻿@using Aeero.Models
+@model Aeero.Models.IngredientType
+
+@{
+    var vueId = "k" + Model.TypeId;
+    var modalId = "l" + Model.TypeId;
+    var formId = "cc" + Model.TypeId;
+    var id = "cd" + Model.TypeId;
+    var isActive = Model.isActive;
+
+}
+<div id="@vueId">
+
+
+    <modal :show.sync="showModal">
+        <h3 slot="header">Rediger</h3>
+        <h5 slot="body">
+            @using (Ajax.BeginForm("Edit", "IngredientType", null, new AjaxOptions
+            {
+                UpdateTargetId = "updateIngredientTypes",
+                InsertionMode = InsertionMode.Replace,
+                HttpMethod = "POST"
+
+            }, new { @class = "form-horizontal", role = "form", id = formId }))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    @Html.HiddenFor(model => model.TypeId, new { id = @id })
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            @Html.LabelFor(model => model.TypeName, htmlAttributes: new { @class = "control-label col-md-2" })
+                        </div>
+                        <div class="col-md-6">
+                            @Html.EditorFor(model => model.TypeName, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                            @Html.ValidationMessageFor(model => model.TypeName, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            @Html.LabelFor(model => model.TypeMax, htmlAttributes: new { @class = "control-label col-md-2" })
+                        </div>
+                        <div class="col-md-6">
+                            @Html.EditorFor(model => model.TypeMax, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                            @Html.ValidationMessageFor(model => model.TypeMax, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            @Html.LabelFor(model => model.TypeUnique, htmlAttributes: new { @class = "control-label col-md-2" })
+                        </div>
+                        <div class="col-md-6">
+                            <div class="checkbox">
+                                @Html.EditorFor(model => model.TypeUnique)
+                                @Html.ValidationMessageFor(model => model.TypeUnique, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            @Html.LabelFor(model => model.TypeExtras, htmlAttributes: new {@class = "control-label col-md-2"})
+                        </div>
+                        <div class="col-md-6">
+                            <div class="checkbox">
+                                @Html.EditorFor(model => model.TypeExtras)
+                                @Html.ValidationMessageFor(model => model.TypeExtras, "", new {@class = "text-danger"})
+                            </div>
+                        </div>
+                    </div>
+                    @Html.HiddenFor(model => @isActive)
+
+                </div>
+
+            }
+
+
+
+        </h5>
+    </modal>
+</div>
+
+<script type="x/template" id="@modalId">
+    <div class="modal-mask" v-on:click="close" v-show="show" transition="modal">
+        <div class="modal-wrapper">
+            <div class="modal-container" v-on:click.stop style="width: 600px;">
+
+                <div class="modal-header">
+                    <slot name="header">
+                    </slot>
+                </div>
+
+                <div class="modal-body">
+                    <slot name="body">
+
+                    </slot>
+
+                </div>
+
+                <div class="modal-footer">
+                    <slot name="footer">
+                        <button class="modal-default-button btn-danger btn" id="knapp" v-on:click="closeButton">
+                            Lagre
+                        </button>
+                    </slot>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script>
+
+    Vue.component('modal', {
+        template: '#@modalId',
+        props: {
+            show: {
+                type: Boolean,
+                required: true,
+                twoWay: true
+
+            }
+        },
+        methods: {
+            close: function() {
+                this.show = false;
+            },
+            closeButton: function () {
+                if ($("form#@formId").valid()) {
+                    $("form#@formId").submit();
+                    this.show = false;
+                }
+            },
+
+            showMethod: function() {
+                this.showModal = true;
+            }
+            },
+
+        ready: function() {
+            this.show = true;
+            document.addEventListener("keydown", (e) => {
+                if (this.show && e.keyCode == 27) {
+                    this.close();
+                }
+                else if (this.show && e.keyCode == 13) {
+                    this.closeButton();
+                }
+
+            });
+
+        }
+    });
+    new Vue({
+        el: '#@vueId',
+        data: {
+            showModal: false,
+
+        },methods: {
+            showModalf: function () {
+            $("#@id").val(@Model.TypeId);
+            this.showModal = true;
+            }
+
+            }
+    });
+    function suc() {
+        //$("#@formId").form.reset();
+
+
+    }
+
+</script>

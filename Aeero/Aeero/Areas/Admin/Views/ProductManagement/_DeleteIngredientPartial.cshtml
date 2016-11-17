@@ -1,0 +1,174 @@
+﻿
+@using Aeero.Models
+@model Aeero.Models.Ingredient
+
+@{
+    var vueId = "o" + Model.IngredientId;
+    var modalId = "p" + Model.IngredientId;
+    var formId = "qt" + Model.IngredientId;
+    var id = "qb" + Model.IngredientId;
+    var veg = "Nei";
+    if (Model.Vegetarian)
+    {
+        veg = "Ja";
+    }
+}
+<div id="@vueId">
+
+
+    <modal :show.sync="showModal">
+        <h3 slot="header" style="color: #ff0000;">Er du sikker på at du vil slette @Model.Name?</h3>
+        <h5 slot="body">
+            @using (Ajax.BeginForm("Delete", "Ingredient", null, new AjaxOptions
+            {
+                UpdateTargetId = "updateIngredients",
+                InsertionMode = InsertionMode.Replace,
+                HttpMethod = "POST",
+
+            }, new { @class = "form-horizontal", role = "form", id = formId }))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-actions no-color">
+                    <input type="hidden" name="id" value=@Model.IngredientId id=@id>
+                </div>
+            }
+
+            <dl class="dl-horizontal">
+
+            <dt>
+                @Html.DisplayNameFor(model => model.PriceSmall)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.PriceSmall) kr
+            </dd>
+            <dt>
+                @Html.DisplayNameFor(model => model.PriceMedium)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.PriceSmall) kr
+            </dd>
+            <dt>
+                @Html.DisplayNameFor(model => model.PriceLarge)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.PriceLarge) kr
+            </dd>
+            <dt>
+                @Html.DisplayNameFor(model => model.Type)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.Type.TypeName)
+            </dd>
+            <dt>
+                @Html.DisplayNameFor(model => model.Vegetarian)
+            </dt>
+
+            <dd>
+                @veg
+            </dd>
+
+
+            </dl>
+
+
+        </h5>
+    </modal>
+</div>
+
+<script type="x/template" id="@modalId">
+    <div class="modal-mask" v-on:click="close" v-show="show" transition="modal">
+        <div class="modal-wrapper">
+            <div class="modal-container" v-on:click.stop style="width: 400px;">
+
+                <div class="modal-header">
+                    <slot name="header">
+                    </slot>
+                </div>
+
+                <div class="modal-body">
+                    <slot name="body">
+
+
+                    </slot>
+
+                </div>
+
+                <div class="modal-footer">
+                    <slot name="footer">
+                        <p style=" color:#ff0000; text-align:left;"><b>Ingrediensen vil bli permanent fjærnet fra databasen</b></p>
+                        <button class="modal-default-button btn-danger btn" id="knapp2" v-on:click="close">
+                            Avbryt
+                        </button>
+                        <button class="modal-default-button btn-danger btn" id="knapp" v-on:click="closeButton" style="position:relative; right:220px;">
+                            Ja
+                        </button>
+                    </slot>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script>
+
+    Vue.component('modal', {
+        template: '#@modalId',
+        props: {
+            show: {
+                type: Boolean,
+                required: true,
+                twoWay: true
+
+            }
+        },
+        methods: {
+            close: function() {
+                this.show = false;
+            },
+            closeButton: function () {
+                if ($("form#@formId").valid()) {
+                    $("form#@formId").submit();
+                    this.show = false;
+                }
+            },
+
+            showMethod: function() {
+                this.showModal = true;
+            }
+            },
+
+        ready: function() {
+            this.show = true;
+            document.addEventListener("keydown", (e) => {
+                if (this.show && e.keyCode == 27) {
+                    this.close();
+                }
+                else if (this.show && e.keyCode == 13) {
+                    this.closeButton();
+                }
+
+            });
+
+        }
+    });
+    new Vue({
+        el: '#@vueId',
+        data: {
+            showModal: false,
+
+        },methods: {
+            showModalf: function () {
+            $("#@id").val(@Model.IngredientId);
+            this.showModal = true;
+            }
+
+            }
+    });
+
+</script>

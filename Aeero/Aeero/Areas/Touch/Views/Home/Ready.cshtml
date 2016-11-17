@@ -1,0 +1,120 @@
+﻿@model IEnumerable<Aeero.Models.Order>
+
+@{
+    ViewBag.Title = "Henting";
+    Layout = "~/Areas/Touch/Views/Shared/_Layout.cshtml";
+}
+
+<h2>
+    @ViewBag.Title
+    <small class="pull-right" id="orderCountdown">Henter nye ordre om 10 sekunder</small>
+</h2>
+
+<script src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
+
+<div class="table-responsive">
+    <table id="ovenTable" class="table table-striped table-condensed">
+        <thead>
+            <tr>
+                <th>Kunde</th>
+                <th>Telefon</th>
+                <th>Levering</th>
+                <th>Pris</th>
+                <th>Pizzaer <span class="pull-right">Antall</span></th>
+                <th>Neste</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td>@order.CustomerName</td>
+                    <td>@order.Phone</td>
+                    <td>
+                        @(order.Deliver ? "Leveres" : "Hentes") @order.DeliveryTime.ToLocalTime().ToShortTimeString()
+                    </td>
+                    <td>
+                        kr @order.Price,-
+                        @if (order.IsPaid)
+                        {
+                            <span class="label label-success">Betalt</span>
+                        }
+                        else
+                        {
+                            <span class="label label-danger">Ikke betalt</span>
+                        }
+                    </td>
+                    <td>
+                        <ul class="list-group">
+                            @foreach (var pizza in order.Lines)
+                            {
+                                <li class="list-group-item">
+                                    @pizza.Description
+                                    <span class="pull-right">@pizza.Count</span>
+                                </li>
+                            }
+                        </ul>
+                    </td>
+                    <td>
+                        @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@order.Id">
+                            <button id="btnpost" class="btn btn-block btn-success btn-next-status">
+                                <i class="glyphicon glyphicon-circle-arrow-right"></i>
+                                @order.NextStateLabel()
+                            </button>
+                        }
+                    </td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
+</div>
+<button id="updateOrdersBtn" class="btn btn-lg btn-primary">Oppdater</button>
+<button id="showallbtn" type="button" class="btn btn-lg btn-info">Vis alle ordre</button>
+
+<script>
+    var showAll = false;
+    // Getting new orders from the server
+    var seconds = 11;
+    var updateovenTable = function () { // updates the Table
+        var reloadPortion = location.pathname + '?showAll=' + showAll + ' #ovenTable';
+        seconds = 10;
+        $('.table-responsive').load(reloadPortion);
+    };
+
+
+    setInterval(function () {
+        seconds--;
+        if (seconds <= 0) {
+            updateovenTable();
+        }
+        $('#orderCountdown').text('Henter nye ordre om ' + seconds + ' sekunder');
+    }, 1000);
+
+    // Reset timer if someone interacts with the page.
+    $('body').on('click', function() {
+        seconds = 11;
+    });
+
+    $('#updateOrdersBtn').on('click', function() {
+        updateovenTable();
+    });
+    $('#showallbtn').on('click', function () {
+        $(this).toggleClass('active');
+        showAll = !showAll;
+        updateovenTable();
+    });
+
+    // post method button
+    $('#btnpost')
+        .on('click',
+            function () {
+                $('#hidden-form').submit();
+            });
+
+</script>
+
+

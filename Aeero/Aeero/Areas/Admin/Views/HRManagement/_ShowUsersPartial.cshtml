@@ -1,0 +1,194 @@
+﻿@using Aeero.Areas.Admin.Models
+@using Aeero.Models
+@using Microsoft.AspNet.Identity
+@using Microsoft.AspNet.Identity.EntityFramework
+@model  Aeero.Areas.Admin.Models.ShowModel
+
+@{
+    ViewBag.w = Model.check;
+}
+<div id="employeeModal"></div>
+<div class="col-md-10"></div>
+<div class="col-md-2">
+    <div class="text-danger">
+        @ViewBag.Error
+    </div>
+    <div class="text-success">
+        @ViewBag.success
+    </div>
+</div>
+    <table class="table table-hover">
+        <tr>
+            <th>
+                Fornavn
+            </th>
+            <th>
+                Etternavn
+            </th>
+            <th>
+                Brukerolle
+            </th>
+            <th>
+                Email
+            </th>
+            <th></th>
+        </tr>
+        @{
+            var userManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(new ApplicationDbContext()));
+            ApplicationUser userr = userManager.FindByIdAsync(User.Identity.GetUserId()).Result;
+
+
+            var role = userr.roleNr;
+
+            var j = 0;
+            foreach (var model in Model.userss)
+            {
+                var i = model.Id;
+                var rowId = j.ToString();
+                var vueId = "jk" + rowId + "k";
+                var modalId = "kk" + rowId + "lel";
+                var editvueId = "ab" + rowId + "df";
+                var editmodalId = "bb" + rowId + "dfb";
+                var mailto = "mailto:" + model.Email;
+                var elementid = "";
+                var classR = rowId + "r";
+                var detailsId = rowId + "km";
+                var editId = rowId + "kjb";
+                var status = "";
+                var handling = "";
+                var SuccessId = ViewBag.Id;
+                var color = "";
+                if (model.Id == ViewBag.Id && ViewBag.success != null)
+                {
+                    color = "success";
+                }
+                else if (model.Id == ViewBag.Id && ViewBag.Error != null)
+                {
+                    color = "danger";
+                }
+                if (model.IsEnabeled == true)
+                {
+                    status = "Deaktiver";
+                    handling = "Deactivate";
+                }
+                else
+                {
+                    status = "Aktiver";
+                    handling = "Activate";
+                    elementid = "greyout";
+                }
+
+                if ((elementid == "" && @ViewBag.w == "true") || (@ViewBag.w == "false"))
+                {
+                    var m = new StatusModel { status = status, handling = handling, Id = model.Id };
+
+                    <tr id="@rowId" class="@color">
+                        <td class="@elementid @classR">
+                            @Html.DisplayFor(modelItem => model.firstName)
+                        </td>
+                        <td class="@elementid @classR">
+                            @Html.DisplayFor(modelItem => model.lastName)
+                        </td>
+                        <td class="@elementid @classR">
+                            @Html.DisplayFor(modelItem => model.UserRole)
+                        </td>
+                        <td class="@elementid @classR">
+                            <a href="@mailto">@Html.DisplayFor(modelItem => model.Email)</a>
+                        </td>
+                        <td style="width: 280px">
+                            <div>
+                                    @using (Ajax.BeginForm("showEmployeeDetails", "HRManagement", new
+                                    {
+                                        VueId = vueId,
+                                        modalId = modalId,
+                                        id = model.Id
+                                    }, new AjaxOptions
+                                    {
+                                        UpdateTargetId = "employeeModal",
+                                        InsertionMode = InsertionMode.Replace,
+                                        HttpMethod = "GET",
+
+
+                                    }, new {@class = "form-horizontal", role = "form", id = detailsId}))
+                                    {
+                                        <button type="submit" class="btn btn-primary j"><b>Detaljer</b></button>
+
+                                    }
+                                    @if (role > model.roleNr)
+                                    {
+                                        using (Ajax.BeginForm("showEmployeeEdit", "HRManagement", new
+                                        {
+                                            vueIdd = editvueId,
+                                            modalIdd = editmodalId,
+                                            check = Model.check,
+                                            search = Model.search,
+                                            id = model.Id
+                                        }, new AjaxOptions
+                                        {
+                                            UpdateTargetId = "employeeModal",
+                                            InsertionMode = InsertionMode.Replace,
+                                            HttpMethod = "GET",
+
+
+                                        }, new { @class = "form-horizontal", role = "form", id = editId }))
+                                        {
+                                            <button type="submit" class="btn btn-primary j"><b>Rediger</b></button>
+
+                                        }
+                                        <label id="@i">
+                                            @Html.Partial("_StatusPartial", m)
+                                        </label>
+                                    }
+                                    else if (userr.Id == model.Id)
+                                    {
+                                        using (Ajax.BeginForm("showEmployeeEdit", "HRManagement", new
+                                        {
+                                            vueIdd = editvueId,
+                                            modalIdd = editmodalId,
+                                            check = Model.check,
+                                            search = Model.search,
+                                            id = model.Id
+                                        }, new AjaxOptions
+                                        {
+                                            UpdateTargetId = "employeeModal",
+                                            InsertionMode = InsertionMode.Replace,
+                                            HttpMethod = "GET",
+
+
+                                        }, new { @class = "form-horizontal", role = "form", id = editId }))
+                                        {
+                                            <button type="submit" class="btn btn-primary j"><b>Rediger</b></button>
+
+                                        }
+
+                                    }
+                                </div>
+
+                        </td>
+
+                    </tr>
+                    <script>
+                    
+                        $(document).ready(function () {
+                            $('#@i').on('click', function () {
+                                var c = "@ViewBag.w";
+                                if ($('.@classR').css('opacity') === '1') {
+                                    $('.@classR').css('opacity', '0.5');
+                                    if (c === 'true') {
+                                        $('#@rowId').remove();
+                                    }
+                                } else if ($('.@classR').css('opacity') === '0.5') {
+                                    $('.@classR').css('opacity', '1');
+                                }
+                            });
+                        });
+
+                    </script>
+
+                }
+                j += 1;
+            }
+
+        }
+    </table>
+

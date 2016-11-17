@@ -1,0 +1,812 @@
+﻿@using Aeero.Models
+@model Aeero.Models.PRpartial
+@{
+    ViewBag.Title = "Offentlig tilgjengelighet";
+    
+}
+
+<h3>Kontaktinformasjon</h3>
+
+<table class="fixed table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Contact.Phone)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Contact.Email)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Contact.Address)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Contact.ZipCode)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Contact.City)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Contact.FixedPriceDelivery)
+        </th>
+        <th>&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model.IndexContact)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Phone)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Address)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ZipCode)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.City)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.FixedPriceDelivery)
+            </td>
+            <td>
+                <button id=@item.ContactId
+                        type="button"
+                        class="btn btn-lg btn-sm btn-primary contact-button"
+                        data-toggle="modal"
+                        data-target="#editContactModal">
+                    Rediger
+                </button>
+            </td>
+        </tr>
+    }
+</table>
+
+
+<h3>Integrasjon med betalingsløsning og SMS gateway</h3>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Contact.StripePublicKey)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Contact.StripePrivateKey)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Contact.TwilioAccountSid)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Contact.TwilioAuthToken)
+        </th>
+        <th>&nbsp;</th>
+    </tr>
+    @foreach (var item in Model.IndexContact)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.StripePublicKey)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StripePrivateKey)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TwilioAccountSid)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TwilioAuthToken)
+            </td>
+            <td>
+                <button id=@item.ContactId
+                        type="button"
+                        class="btn btn-lg btn-sm btn-primary contact-button"
+                        data-toggle="modal"
+                        data-target="#editContactModal">
+                    Rediger
+                </button>
+            </td>
+        </tr>
+    }
+</table>
+
+<h3>Sosiale medier</h3>
+<table class="table">
+    @{
+        var faceurl = Model.Facebook.Url;
+        var isActive = true;
+        var facebook = "Rediger";
+        var placeholder = "";
+        var Activated = "Deaktiver";
+        var elementid = "";
+        var twiturl = Model.Twitter.Url;
+        var twitter = "Rediger";
+        var placeholder2 = "";
+        var Activated2 = "Deaktiver";
+        var elementid2 = "";
+        if (!Model.Facebook.isActive)
+        {
+            Activated = "Aktiver";
+            elementid = "greyout";
+        }
+        if (Model.Facebook.Url == null)
+        {
+            facebook = "Legg til";
+            placeholder = "Ingen Facebook url lagt til.";
+            elementid = "";
+        }
+        if (!Model.Twitter.isActive)
+        {
+            Activated2 = "Aktiver";
+            elementid2 = "greyout";
+        }
+        if (Model.Twitter.Url == null && Model.Twitter.UserName == null)
+        {
+            twitter = "Legg til";
+            placeholder2 = "Ingen Twitter url lagt til.";
+            elementid2 = "";
+        }
+    }
+    <tr>
+        <th class="@elementid" style="width: 200px;">
+            Facebook url:
+        </th>
+        <td class="@elementid">
+            <a href=@faceurl>@faceurl</a>
+            @placeholder
+        </td>
+        <td style="width: 400px;">
+            <div class="col-md-2">
+                <button id=facebookbtn
+                        type="button"
+                        class="btn btn-lg btn-sm btn-primary contact-button"
+                        data-toggle="modal"
+                        data-target="#editFacebookModal">
+                    @facebook
+                </button>
+            </div>
+            <div class="col-md-2">
+                @if (Model.Facebook.Url != null)
+                {
+                    using (Html.BeginForm("DeactivateFacebook", "Contacts", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" name="Id" value=@Model.Facebook.Id>
+                        <input type="submit" value=@Activated class="btn btn-lg btn-sm btn-primary contact-button"/>
+                    }
+                }
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <th class="@elementid2" style="width: 200px;">
+            Twitter url:
+        </th>
+        <td class="@elementid2">
+            <a href=@twiturl>@twiturl</a>
+            @placeholder2
+        </td>
+        <td style="width: 400px;">
+            <div class="col-md-2">
+                <button id=twitterbtn
+                        type="button"
+                        class="btn btn-lg btn-sm btn-primary contact-button"
+                        data-toggle="modal"
+                        data-target="#editTwitterModal">
+                    @twitter
+                </button>
+            </div>
+            <div class="col-md-2">
+                @if (Model.Twitter.Url != null)
+            {
+                using (Html.BeginForm("DeactivateTwitter", "Contacts", FormMethod.Post))
+                {
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" name="Id" value=@Model.Twitter.Id>
+                        <input type="submit" value=@Activated2 class="btn btn-lg btn-sm btn-primary contact-button" />
+                    }
+                }
+            </div>
+        </td>
+    </tr>
+</table>
+
+<!--Twitter Edit-->
+<div id="editTwitterModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Twitter url</h4>
+            </div>
+            <div class="modal-body">
+                @if (twitter == "Rediger")
+                {
+                    using (Html.BeginForm("EditTwitterUrl", "Contacts", FormMethod.Post))
+                    {
+                        <div class="modal-body">
+                            @Html.AntiForgeryToken()
+                            <div class="form-horizontal">
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Twitter.Url, htmlAttributes: new {@class = "control-label col-md-2"})
+                                    <div class="col-md-10">
+                                        @Html.EditorFor(model => model.Twitter.Url, new {htmlAttributes = new {@class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.Twitter.Url, "", new {@class = "text-danger"})
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Twitter.UserName, htmlAttributes: new { @class = "control-label col-md-2" })
+                                    <div class="col-md-10">
+                                        @Html.EditorFor(model => model.Twitter.UserName, new { htmlAttributes = new { @class = "form-control" ,required="required"} })
+                                        @Html.ValidationMessageFor(model => model.Twitter.UserName, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                @Html.HiddenFor(model => model.Twitter.isActive)
+                                @Html.HiddenFor(model => model.Twitter.Id)
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-10">
+                                        <input type="submit" value="Endre" class="btn btn-default" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    using (Html.BeginForm("AddTwitterUrl", "Contacts", FormMethod.Post))
+                    {
+                        <div class="modal-body">
+                            @Html.AntiForgeryToken()
+                            <div class="form-horizontal">
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Twitter.Url, htmlAttributes: new {@class = "control-label col-md-2"})
+                                    <div class="col-md-10">
+                                        @Html.EditorFor(model => model.Twitter.Url, new {htmlAttributes = new {@class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.Twitter.Url, "", new {@class = "text-danger"})
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Twitter.UserName, htmlAttributes: new { @class = "control-label col-md-2" })
+                                    <div class="col-md-10">
+                                        @Html.EditorFor(model => model.Twitter.UserName, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.Twitter.UserName, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-10">
+                                        <input type="submit" value="Legg til" class="btn btn-default" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Lukk</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Facebook Edit-->
+<div id="editFacebookModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Facebook url</h4>
+            </div>
+            <div class="modal-body">
+                @if (facebook == "Rediger")
+                {
+                    using (Html.BeginForm("EditUrl", "Contacts", FormMethod.Post))
+                    {
+                        <div class="modal-body">
+                            @Html.AntiForgeryToken()
+                            <div class="form-horizontal">
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Facebook.Url, htmlAttributes: new {@class = "control-label col-md-2"})
+                                    <div class="col-md-10">
+                                        @Html.EditorFor(model => model.Facebook.Url, new {htmlAttributes = new {@class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.Facebook.Url, "", new {@class = "text-danger"})
+                                    </div>
+                                </div>
+                                @Html.HiddenFor(model => model.Facebook.isActive)
+                                @Html.HiddenFor(model => model.Facebook.Id)
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-10">
+                                        <input type="submit" value="Endre" class="btn btn-default"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    using (Html.BeginForm("AddUrl", "Contacts", FormMethod.Post))
+                    {
+                        <div class="modal-body">
+                            @Html.AntiForgeryToken()
+                            <div class="form-horizontal">
+
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.Facebook.Url, htmlAttributes: new { @class = "control-label col-md-2" })
+                                    <div class="col-md-10">
+                                        @Html.EditorFor(model => model.Facebook.Url, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                                        @Html.ValidationMessageFor(model => model.Facebook.Url, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-10">
+                                        <input type="submit" value="Legg til" class="btn btn-default" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Lukk</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+    <!--Contact Edit-->
+    <div id="editContactModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Endre kontaktinfo</h4>
+                </div>
+                @using (Html.BeginForm("ContactEdit", "Contacts", FormMethod.Post))
+            {
+                    <div class="modal-body">
+                        @Html.AntiForgeryToken()
+                        <div class="form-horizontal">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            @Html.EditorFor(model => model.Contact.ContactId, new { htmlAttributes = new { id = "cEditId", @class = "hidden" } })
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Contact.Phone, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Contact.Phone, new { htmlAttributes = new { id = "cEditPhone", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Contact.Phone, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Contact.Email, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Contact.Email, new { htmlAttributes = new { id = "cEditEmail", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Contact.Email, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Contact.Address, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Contact.Address, new { htmlAttributes = new { id = "cEditAddress", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Contact.Address, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Contact.ZipCode, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Contact.ZipCode, new { htmlAttributes = new { id = "cEditZip", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Contact.ZipCode, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Contact.City, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Contact.City, new { htmlAttributes = new { id = "cEditCity", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Contact.City, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Contact.FixedPriceDelivery, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Contact.FixedPriceDelivery, new { htmlAttributes = new { id = "cEditFixedPriceDelivery", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Contact.FixedPriceDelivery, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <hr />
+
+                            <h4>API-nøkler for betaling og SMS</h4>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Contact.StripePublicKey, htmlAttributes: new { @class = "control-label col-md-5" })
+                                <div class="col-md-7">
+                                    @Html.EditorFor(model => model.Contact.StripePublicKey, new { htmlAttributes = new { id = "cEditStripePublicKey", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Contact.StripePublicKey, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Contact.StripePrivateKey, htmlAttributes: new { @class = "control-label col-md-5" })
+                                <div class="col-md-7">
+                                    @Html.EditorFor(model => model.Contact.StripePrivateKey, new { htmlAttributes = new { id = "cEditStripePrivateKey", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Contact.StripePrivateKey, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Contact.TwilioAccountSid, htmlAttributes: new { @class = "control-label col-md-5" })
+                                <div class="col-md-7">
+                                    @Html.EditorFor(model => model.Contact.TwilioAccountSid, new { htmlAttributes = new { id = "cEditTwilioAccountSid", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Contact.TwilioAccountSid, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Contact.TwilioAuthToken, htmlAttributes: new { @class = "control-label col-md-5" })
+                                <div class="col-md-7">
+                                    @Html.EditorFor(model => model.Contact.TwilioAuthToken, new { htmlAttributes = new { id = "cEditTwilioAuthToken", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Contact.TwilioAuthToken, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+
+                        <input type="submit" value="Lagre" class="btn btn-default" />
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Lukk</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <h3>Åpningstider</h3>
+    @*
+        // Re-enable this if we have time to add holidays and other custom days
+        <button id="create"
+                type="button"
+                class="btn btn-lg btn-primary contacts-button"
+                data-toggle="modal"
+                data-target="#createHoursModal">
+                    Opprett Dag
+        </button>
+        <p></p>
+    *@
+
+    <!--Hour Create-->
+    <div id="createHoursModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Opprett dag</h4>
+                </div>
+                <div class="modal-body">
+                    @using (Html.BeginForm("HoursCreate", "Contacts", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-horizontal">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Hours.Day, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Hours.Day, new { htmlAttributes = new { @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Hours.Day, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Hours.OpeningHours, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Hours.OpeningHours, new { htmlAttributes = new { @class = "form-control", @Value = "hh:mm" } })
+                                    @Html.ValidationMessageFor(model => model.Hours.OpeningHours, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Hours.ClosingHours, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Hours.ClosingHours, new { htmlAttributes = new { @class = "form-control", @Value = "hh:mm" } })
+                                    @Html.ValidationMessageFor(model => model.Hours.ClosingHours, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Hours.DeliveryStart, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Hours.DeliveryStart, new { htmlAttributes = new { @class = "form-control", @Value = "hh:mm" } })
+                                    @Html.ValidationMessageFor(model => model.Hours.DeliveryStart, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Hours.DeliveryEnd, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Hours.DeliveryEnd, new { htmlAttributes = new { @class = "form-control", @Value = "hh:mm" } })
+                                    @Html.ValidationMessageFor(model => model.Hours.DeliveryEnd, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-10">
+                                    <input type="submit" value="Create" class="btn btn-default" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Lukk</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table class="fixed table">
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Hours.Day)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Hours.OpeningHours)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Hours.ClosingHours)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Hours.DeliveryStart)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Hours.DeliveryEnd)
+            </th>
+            <th></th>
+        </tr>
+
+        @foreach (var item in Model.IndexHours)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Day)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OpeningHours)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ClosingHours)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DeliveryStart)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DeliveryEnd)
+                </td>
+                <td>
+                    <button id=@item.HoursId
+                            type="button"
+                            class="btn btn-lg btn-sm btn-primary hour-button"
+                            data-toggle="modal"
+                            data-target="#editHoursModal">
+                        Rediger
+                    </button>
+                    @*
+                        // Re-enable this if we have time to add holidays etc.
+                        <button id=@item.HoursId
+                            type="button"
+                            class="btn btn-lg btn-sm btn-primary hour-delete-button"
+                            data-toggle="modal"
+                            data-target="#deleteHoursModal">
+                            Slett
+                        </button>
+                    *@
+                </td>
+            </tr>
+        }
+
+    </table>
+
+    <!--Hour Edit-->
+    <div id="editHoursModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Endre Tidspunkter</h4>
+                </div>
+                <div class="modal-body">
+                    @using (Html.BeginForm("HoursEdit", "Contacts", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-horizontal">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            @Html.EditorFor(model => model.Hours.HoursId, new { htmlAttributes = new { id = "hEditId", @class = "hidden" } })
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Hours.Day, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    <input id="cDayLabel" disabled="disabled" class="form-control" type="text" />
+                                    @Html.EditorFor(model => model.Hours.Day, new { htmlAttributes = new { id = "hEditDay", @class = "form-control hidden" } })
+                                    @Html.ValidationMessageFor(model => model.Hours.Day, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Hours.OpeningHours, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Hours.OpeningHours, new { htmlAttributes = new { id = "hEditOpen", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Hours.OpeningHours, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Hours.ClosingHours, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Hours.ClosingHours, new { htmlAttributes = new { id = "hEditClose", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Hours.ClosingHours, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Hours.DeliveryStart, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Hours.DeliveryStart, new { htmlAttributes = new { id = "hEditStart", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Hours.DeliveryStart, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Hours.DeliveryEnd, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Hours.DeliveryEnd, new { htmlAttributes = new { id = "hEditEnd", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Hours.DeliveryEnd, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-10">
+                                    <input type="submit" value="Lagre" class="btn btn-default" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Lukk</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--Hour Delete-->
+    <div id="deleteHoursModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Slette dag</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-offset-1 col-md-5">
+                            <span style="font-size: 1.5em;">
+                                Vil du slette
+                                <label id="hDeleteDay"></label>
+                                ?
+                            </span>
+                        </div>
+
+                        <div class="col-md-offset-1 col-md-5">
+                            @using (Html.BeginForm("HoursDelete", "Contacts", FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <div class="form-horizontal">
+                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                    <input name="Id" type="number" id="hDeleteId" class="hidden" />
+
+                                    <div class="form-group">
+
+                                        <input type="submit" value="Slett" class="btn btn-default" />
+                                        <button type="button" class="btn btn-primary" data-dismiss="modal" style="margin-left: 1em;">Lukk</button>
+
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        $(document).ready(function() {
+            var contactList = @Html.Raw(Json.Encode(Model.IndexContact));
+            var hoursList = @Html.Raw(Json.Encode(Model.IndexHours));
+            var timeMerger = function(obj) {
+                var time;
+                if (obj.Hours < 10) {
+                    time = "0" + obj.Hours+":";
+                } else {
+                    time = obj.Hours+":";
+                }
+                if (obj.Minutes < 10) {
+                    time += "0" + obj.Minutes;
+                } else {
+                    time += obj.Minutes;
+                }
+                return time;
+            }
+
+            $('.hour-delete-button').click(function() {
+                var id = $(this).attr('id');
+                for (var i = 0; i < hoursList.length; i++) {
+                    var hour = hoursList[i];
+                    if(hour.HoursId.toString() === id) {
+                        console.log(id);
+                        $('#hDeleteId').val(hour.HoursId);
+                        $('#hDeleteDay').text(hour.Day);
+                        break;
+                    }
+                }
+            });
+
+            $('.contact-button').click(function() {
+                var id = $(this).attr('id');
+                for (var i = 0; i < contactList.length; i++) {
+                    var contact = contactList[i];
+                    if(contact.ContactId.toString() === id) {
+                        $('#cEditId').val(contact.ContactId);
+                        $('#cEditPhone').val(contact.Phone);
+                        $('#cEditEmail').val(contact.Email);
+                        $('#cEditAddress').val(contact.Address);
+                        $('#cEditZip').val(contact.ZipCode);
+                        $('#cEditCity').val(contact.City);
+                        $('#cEditFixedPriceDelivery').val(contact.FixedPriceDelivery);
+
+                        $('#cEditStripePublicKey').val(contact.StripePublicKey);
+                        $('#cEditStripePrivateKey').val(contact.StripePrivateKey);
+                        $('#cEditTwilioAccountSid').val(contact.TwilioAccountSid);
+                        $('#cEditTwilioAuthToken').val(contact.TwilioAuthToken);
+                        break;
+                    }
+                }
+            });
+
+            $('.hour-button').click(function() {
+                var id = $(this).attr('id');
+                for (var i = 0; i < hoursList.length; i++) {
+                    var hour = hoursList[i];
+                    if(hour.HoursId.toString() === id) {
+                        var time;
+                        $('#hEditId').val(hour.HoursId);
+                        $('#hEditDay').val(hour.Day);
+                        $('#cDayLabel').val(hour.Day);
+                        $('#hEditOpen').val(timeMerger(hour.OpeningHours));
+                        $('#hEditClose').val(timeMerger(hour.ClosingHours));
+                        $('#hEditStart').val(timeMerger(hour.DeliveryStart));
+                        $('#hEditEnd').val(timeMerger(hour.DeliveryEnd));
+                        break;
+                    }
+                }
+            });
+        });
+    </script>

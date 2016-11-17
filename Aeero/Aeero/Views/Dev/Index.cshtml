@@ -1,0 +1,24 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>List of views</h2>
+
+<ul>
+    <li>Admin</li>
+    <ul>
+        <li>@Html.ActionLink("Home", "Index", "Admin/Home", null, new { @class = "Home" })</li>
+        <li>@Html.ActionLink("HR Management", "Index", "Admin/HRManagement", null, new { @class = "Home" })</li>
+        <li>@Html.ActionLink("Ingredient", "Index", "Admin/Ingredient", null, new { @class = "Home" })</li>
+        <li>@Html.ActionLink("Ingredient Type", "Index", "Admin/IngredientType", null, new { @class = "Home" })</li>
+        <li>@Html.ActionLink("Pizza", "Index", "Admin/Pizzas", null, new { @class = "Home" })</li>
+    </ul>
+    <li>Customer</li>
+    <ul></ul>
+    <li>Touch</li>
+    <Ul>
+        <li>@Html.ActionLink("Home", "Index", "Touch/Home", null, new { @class = "Home" })</li>
+    </Ul>
+    <ul></ul>
+</ul>

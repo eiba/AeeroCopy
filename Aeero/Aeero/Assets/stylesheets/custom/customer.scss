@@ -1,0 +1,10 @@
+﻿/* CSS only used in the Customer area subproject */
+
+.body-customer {
+    background-color: #fff;
+
+    // Hide clock icon / time selection on customer order page.
+    .picker-switch.accordion-toggle {
+        display: none;
+    }
+}

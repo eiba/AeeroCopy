@@ -1,0 +1,24 @@
+﻿@using Aeero.Models
+@using Microsoft.AspNet.Identity
+@using Microsoft.AspNet.Identity.EntityFramework
+@if (Request.IsAuthenticated)
+{
+    using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
+    {
+    @Html.AntiForgeryToken()
+        var store = new UserStore<ApplicationUser>(new ApplicationDbContext());
+        var manager = new UserManager<ApplicationUser>(store);
+    <ul class="nav navbar-nav navbar-right">
+        <li>
+            @Html.ActionLink("Du er logget inn med " + manager.FindById(User.Identity.GetUserId()).Email + ".", "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage" })
+        </li>
+        <li><a href="javascript:document.getElementById('logoutForm').submit()">Log off</a></li>
+    </ul>
+    }
+}
+else
+{
+    <ul class="nav navbar-nav navbar-right">
+        <li>@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+    </ul>
+}

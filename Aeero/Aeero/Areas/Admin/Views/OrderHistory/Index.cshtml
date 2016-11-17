@@ -1,0 +1,332 @@
+﻿@model List<Aeero.Models.Order>
+@{
+    ViewBag.Title = "Ordrehistorikk";
+}
+
+<div class="row">
+    <div class="col-md-4" style="background-color: #F5F5F5; border-bottom: 2px #D4D6D6 solid; border-right: 2px #D4D6D6 solid">
+        <h3>Filter</h3>
+        <div class="form-group">
+            <div class="col-sm-6" style="margin-bottom: 2em; padding-left: 0">
+                <h4><label><input type="checkbox" name="includeStage" id="includeStage" value="true"> Stadie</label></h4>
+                <select class="form-control" id="sel2" name="stage" style="width: 100%; max-width: 100%">
+                    <option value="all">Alle</option>
+                    <option value="new">Ny</option>
+                    <option value="preparation">Baking</option>
+                    <option value="oven">Steking</option>
+                    <option value="deliver">Levering</option>
+                    <option value="ready">Klar</option>
+                    <option value="canceled">Avbestilt</option>
+                </select>
+            </div>
+            <div class="col-sm-6" style="margin-bottom: 2em">
+                <h4><label><input type="checkbox" name="includePayed" id="includePayed" value="true"> Betaling status</label></h4>
+                <select class="form-control" id="sel3" name="payed" style="width: 100%; max-width: 100%">
+                    <option>Alle</option>
+                    <option>Betalt</option>
+                    <option>Ubetalt</option>
+                </select>
+            </div> 
+        </div>
+
+        <h4><label><input type="checkbox" name="includeModified" id="includeModified" value="true"> Endringsdato</label></h4>
+        <div class="form-group">
+            <div class="col-sm-6" style="margin-bottom: 2em; padding-left: 0">
+                <label>Fra:</label>
+                <div class='input-group date' id='datetimepicker1'>
+                    <input type='text' class="form-control" name="modifiedFrom" id="modifiedFrom" style="width: 100%; max-width: 100%">
+                    <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                </div>
+            </div>
+            <div class="col-sm-6" style="margin-bottom: 2em">
+                <label>Til:</label>
+                <div class='input-group date' id='datetimepicker2'>
+                    <input type='text' class="form-control" name="modifiedTo" id="modifiedTo" style="width: 100%; max-width: 100%">
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <h4><label><input type="checkbox" name="includeDelivery" id="includeDelivery" value="true"> Leveringsdato</label></h4>
+        <div class="form-group">
+            <div class="col-sm-6" style="margin-bottom: 2em; padding-left: 0">
+                <label>Fra:</label>
+                <div class='input-group date' id='datetimepicker3'>
+                    <input type='text' class="form-control" name="deliveryFrom" id="deliveryFrom" style="width: 100%; max-width: 100%">
+                    <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                </div>
+            </div>
+            <div class="col-sm-6" style="margin-bottom: 2em">
+                <label>Til:</label>
+                <div class='input-group date' id='datetimepicker4'>
+                    <input type='text' class="form-control" name="deliveryTo" id="deliveryTo" style="width: 100%; max-width: 100%">
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-10" style="padding-left: 0; margin-bottom: 1em;">
+                <button id="submit" class="btn btn-lg btn-primary">Filtrer</button>
+            </div>
+        </div>
+  
+    </div>
+
+    <div class="col-md-8">
+
+            <div class="form-inline">
+                <div class="form-group">
+                    <select class="form-control" id="sel1" name="searchType">
+                        <option value="CustomerName">Kunde</option>
+                        <option value="Phone">Telefon</option>
+                        <option value="Address">Adresse</option>
+                        <option value="ZipCode">Post nummer</option>
+                        <option value="Id">Ordre nummer</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="width: 60%">
+                    <div class="input-group" style="width: 80%">
+                        <input type='text' class="form-control" name="searchText" id="searchText" style="width: 100%">
+                        <button class="input-group-addon btn" id="searchButton" style="height: 34px; box-shadow: none;">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                    </div> 
+                </div>
+            </div>
+        <p></p>
+        <span id="table">@{ Html.RenderPartial("_OrderHistoryTable", Model);}</span>
+        <div style="text-align: center">
+                <button id="first" class="btn btn-sm"><<</button>
+                <button id="previous" class="btn btn-sm"><</button>
+                <button id="secondPrior" class="btn btn-sm"></button>
+                <button id="firstPrior" class="btn btn-sm"></button>
+                <button id="current" class="btn btn-sm btn-primary"></button>
+                <button id="firstPosterior" class="btn btn-sm"></button>
+                <button id="secondPosterior" class="btn btn-sm"></button>
+                <button id="next" class="btn btn-sm">></button>
+                <button id="last" class="btn btn-sm">>></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        var total = @ViewBag.totalPages;
+        var current = @ViewBag.currentPage;
+        var search = "";
+        var type = $('#sel1').val();
+        var orderby = "orderId";
+        var direction = "ASC";
+
+        //RETURNS PARAMETERS
+        var filterParameters = function() {
+            var includeStage = function() {
+                return $('#includeStage').prop('checked') ? "true" : null;
+            };
+            var includePayed = function () {
+                return $('#includePayed').prop('checked') ? "true" : null;
+            };
+            var includeModified = function () {
+                return $('#includeModified').prop('checked') ? "true" : null;
+            };
+            var includeDelivery = function () {
+                return $('#includeDelivery').prop('checked') ? "true" : null;
+            };
+            var stage = function() {
+                return ($("#sel2 option:selected").val() == "canceled") ? "all" : $("#sel2 option:selected").val();
+            }
+            var canceled = function() {
+                return  ($("#sel2 option:selected").val() == "canceled") ? "true" : null;
+            }
+            var params = "stage=" + stage() + "&payed=" + $("#sel3 option:selected").text()
+                + "&modifiedFrom=" + $("#modifiedFrom").val() + "&modifiedTo=" + $("#modifiedTo").val()
+                + "&deliveryFrom=" + $("#deliveryFrom").val() + "&deliveryTo=" + $("#deliveryTo").val()
+                + "&includeStage=" + includeStage() + "&includePayed=" + includePayed()
+                + "&includeModified=" + includeModified() + "&includeDelivery=" + includeDelivery()
+                + "&page=" + current + "&type=" + type + "&search=" + search + "&orderby=" + orderby 
+                +"&direction=" + direction + "&canceled=" + canceled();
+            return params;
+        }
+
+        //UPDATES NAVIGATION BUTTONS
+        var navbuttons = function() {
+            if (current - 1 > 0) {
+                $('#secondPrior').html(current - 1);
+                $('#secondPrior').show();
+            } else {
+                $('#secondPrior').hide();
+            }
+
+            if (current > 0) {
+                $('#firstPrior').html(current);
+                $('#firstPrior').show();
+                $('#previous').show();
+            } else {
+                $('#firstPrior').hide();
+                $('#previous').hide();
+            }
+
+            $('#current').html(current+1);
+
+            if (current + 1 < total) {
+                $('#firstPosterior').html(current + 2);
+                $('#firstPosterior').show();
+                $('#next').show();
+            } else {
+                $('#firstPosterior').hide();
+                $('#next').hide();
+            }
+
+            if (current + 2 < total) {
+                $('#secondPosterior').html(current + 3);
+                $('#secondPosterior').show();
+            } else {
+                $('#secondPosterior').hide();
+            }
+        }
+
+        //FORM SUBMIT, UPDATES TABLE PARTIAL
+        var submit = function submitForm() {
+            var http = new XMLHttpRequest();
+            var params = filterParameters();
+
+            http.open("POST", '@Url.Action("Filter")', true);
+            http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+            http.onreadystatechange = function () {
+                if (http.readyState == 4 && http.status == 200) {
+                    $('#table').html(http.responseText);
+                }
+            }
+            http.send(params);
+        }
+
+        //UPDATES TOTAL PAGES AFTER FILTER
+        var updateTotal = function() {
+            $.ajax({
+                dataType: "json",
+                url: '@Url.Action("FilterPageCount")',
+                type: "GET",
+                data: {
+                    stage: ($("#sel2 option:selected").val() == "canceled") ? "all" : $("#sel2 option:selected").val(), payed: $("#sel3 option:selected").text(),
+                    modifiedFrom: $("#modifiedFrom").val(), modifiedTo: $("#modifiedTo").val(), deliveryFrom: $("#deliveryFrom").val(),
+                    deliveryTo: $("#deliveryTo").val(), includeStage: $('#includeStage').prop('checked') ? "true" : null,
+                    includePayed: $('#includePayed').prop('checked') ? "true" : null,
+                    includeModified: $('#includeModified').prop('checked') ? "true" : null,
+                    includeDelivery: $('#includeDelivery').prop('checked') ? "true" : null,
+                    type: type, search: search, canceled: ($("#sel2 option:selected").val() == "canceled") ? "true" : null
+                },
+                success: function (result) {
+                    total = result;
+                    if (current + 1 > result) {
+                        current = result - 1;
+                    } 
+                    if (current < 0) {
+                        current = 0;
+                    }
+                    submit();
+                    navbuttons();
+                }
+            });
+        }
+
+        navbuttons();
+
+        $(document).on("click", '.orderby', function(e){
+            console.log(orderby + " " + $(this).attr('id') + " " + direction);
+            if (orderby == $(this).attr('id')) {
+                if (direction == "ASC") {
+                    direction = "DESC";
+                } else {
+                    direction = "ASC";
+                }
+            } else {
+                direction = "ASC";
+            }
+            console.log(orderby + " " + direction);
+            orderby = $(this).attr('id');
+            updateTotal();
+        });
+
+        $('#submit').click(function() {
+            updateTotal();
+        });
+        $('#searchButton').click(function() {
+            search = $('#searchText').val();
+            type = $('#sel1').val();
+            updateTotal();
+        });
+        $('#first').click(function() {
+            current = 0;
+            updateTotal();
+        });
+        $('#secondPrior').click(function() {
+            current -= 2;
+            updateTotal();
+        });
+        $('#previous').click(function() {
+            current -= 1;
+            updateTotal();
+        });
+        $('#firstPrior').click(function() {
+            current -= 1;
+            updateTotal();
+        });
+        $('#firstPosterior').click(function() {
+            current += 1;
+            updateTotal();
+        });
+        $('#next').click(function() {
+            current += 1;
+            updateTotal();
+        });
+        $('#secondPosterior').click(function() {
+            current += 2;
+            updateTotal();
+        });
+        $('#last').click(function() {
+            current = total - 1;
+            updateTotal();
+
+        });
+    });
+
+    $(function () {
+        $('#datetimepicker1').datetimepicker({
+            format: "DD/MM/YYYY HH:mm"
+        });
+        $('#datetimepicker2').datetimepicker({
+            format: "DD/MM/YYYY HH:mm",
+            useCurrent: false
+        });
+        $("#datetimepicker1").on("dp.change", function (e) {
+            $('#datetimepicker2').data("DateTimePicker").minDate(e.date);
+        });
+        $("#datetimepicker2").on("dp.change", function (e) {
+            $('#datetimepicker1').data("DateTimePicker").maxDate(e.date);
+        });
+        $('#datetimepicker3').datetimepicker({
+            format: "DD/MM/YYYY HH:mm"
+        });
+        $('#datetimepicker4').datetimepicker({
+            format: "DD/MM/YYYY HH:mm",
+            useCurrent: false
+        });
+        $("#datetimepicker3").on("dp.change", function (e) {
+            $('#datetimepicker4').data("DateTimePicker").minDate(e.date);
+        });
+        $("#datetimepicker4").on("dp.change", function (e) {
+            $('#datetimepicker3').data("DateTimePicker").maxDate(e.date);
+        });
+    });
+</script>

@@ -1,0 +1,194 @@
+﻿@model List<Aeero.Models.Order>
+
+<table class="table">
+    <tr>
+        <th style="width: 10%"></th>
+        <th id="orderId" class="orderby" role="button" style="width: 20%">Ordre Nummer</th>
+        <th id="orderCustomer" class="orderby" role="button" style="width: 30%">Kunde</th>
+        <th id="orderStage" class="orderby" role="button" style="width: 20%">Stadie</th>
+        <th id="orderModified" class="orderby" role="button" style="width: 20%">Sist Endret</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                <button id=@item.Id
+                        type="button"
+                        class="btn btn-sm btn-primary detail-button"
+                        data-toggle="modal"
+                        data-target="#detailModal">
+                    Detaljer
+                </button>
+            </td>
+            <td>@item.Id</td>
+            <td>@item.CustomerName</td>
+            <td>@item.StateLabel()</td>
+            <td>@item.LastModified</td>
+        </tr>
+    }
+</table>
+
+<!--Order Detail-->
+<div id="detailModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Ordre Detaljer</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Ordre Nummer</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="order-detail" id="order"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Kunde Navn</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="order-detail" id="customer"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Telefon</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="order-detail" id="phone"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Levering</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <input class="order-detail" type="checkbox" id="delivery">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Leveringstid</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="order-detail" id="deliverytime"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Adresse</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="order-detail" id="address"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Post Nummer</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="order-detail" id="zip"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Sted</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="order-detail" id="city"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Rabatt</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="order-detail" id="discount"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Sum Pris</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="order-detail" id="total"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Betalt</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <input class="order-detail" type="checkbox" id="paid">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Stadie</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="order-detail" id="stage"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <Label>Sist Endret</Label>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="order-detail" id="modified"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Lukk</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('.detail-button').click(function () {
+            var id = $(this).attr('id');
+
+            @foreach (var item in Model)
+            {
+            <text>
+                if (@item.Id == id)
+                {
+                    $('#order').text("@item.Id");
+                    $('#customer').text("@item.CustomerName");
+                    $('#phone').text("@item.Phone");
+                    if("@item.Deliver" == "True"){ $('#delivery').prop('checked', true); }
+                    $('#deliverytime').text("@item.DeliveryTime");
+                    $('#address').text("@item.Address");
+                    $('#zip').text("@item.ZipCode");
+                    $('#city').text("@item.City");
+                    $('#discount').text("@item.Discount");
+                    $('#total').text("@item.Price");
+                    if("@item.IsPaid" == "True"){ $('#paid').prop('checked', true); }
+                    $('#stage').text("@item.State");
+                    $('#modified').text("@item.LastModified");
+                }
+            </text>
+            }
+            $("#delivery:checkbox").click(function() { return false; });
+            $("#paid:checkbox").click(function() { return false; });
+        });
+    });
+</script>

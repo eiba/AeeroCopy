@@ -1,0 +1,42 @@
+﻿@model Aeero.Models.IngredientType
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>IngredientType</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.TypeName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TypeName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TypeMax)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TypeMax)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TypeUnique)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TypeUnique)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.TypeId }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

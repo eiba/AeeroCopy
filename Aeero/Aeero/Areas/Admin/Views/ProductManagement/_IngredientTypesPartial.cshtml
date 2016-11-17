@@ -1,0 +1,165 @@
+﻿@using Aeero.Models
+@model Aeero.Areas.Admin.Models.IngredientTypeModelExtended
+
+@using (Ajax.BeginForm("showIngredientTypeCreate", "ProductManagement", null, new AjaxOptions
+{
+    UpdateTargetId = "ingredientTypeModal",
+    InsertionMode = InsertionMode.Replace,
+    HttpMethod = "GET",
+
+
+}, new { @class = "form-horizontal", role = "form", id = "kayy" }))
+{
+    <button type="submit" id="buttn" class="btn btn-primary j"><b>Legg til ingredienstype</b></button>
+}
+
+<br/><br/>
+<input type="checkbox" id="checkbox1"> Vis kun aktive produkter
+@using (Ajax.BeginForm("EditShow", "ProductManagement", new { k = true,type= "IngredientType" }, new AjaxOptions
+{
+
+    UpdateTargetId = "updateIngredientTypes",
+    InsertionMode = InsertionMode.Replace,
+    HttpMethod = "POST"
+}
+,new { id = "AjaxForm" }))
+{
+}
+@using (Ajax.BeginForm("EditShow", "ProductManagement", new {k = false,type= "IngredientType" }, new AjaxOptions
+{
+
+    UpdateTargetId = "updateIngredientTypes",
+    InsertionMode = InsertionMode.Replace,
+    HttpMethod = "POST"
+
+}
+,new { id = "k" }))
+{
+}
+
+<script>
+    $(document).ready(function() {
+        var check = '@Model.show';
+        if (check =='True') {
+            $('#checkbox1').prop('checked', true);
+        }
+        $('#checkbox1').change(function() {
+            if ($(this).is(":checked")) {
+
+                $("form#AjaxForm").submit();
+            } else {
+                $("form#k").submit();
+            }
+        });
+    });
+</script>
+
+<div class="col-md-10"></div>
+<div class="col-md-2">
+    <div class="text-danger">
+        @ViewBag.Error
+    </div>
+    <div class="text-success">
+        @ViewBag.success
+    </div>
+</div>
+<h2>Ingredienstyper</h2>
+<div id="ingredientTypeModal"></div>
+<table class="table table-hover">
+    <tr>
+        <th>
+            Ingredienstype
+        </th>
+        <th>
+            Max antall
+        </th>
+        <th>
+            Unik
+        </th>
+        <th>
+            Tilbehør
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model.IngredientTypes)
+    {
+        if (!Model.show || (Model.show && item.isActive))
+        {
+            var detailsId = item.TypeId + "nvm";
+            var editId = item.TypeId + "mbn";
+            var deleteId = item.TypeId + "nbm";
+            var ingredientType = "";
+            var elementid = "";
+            var btnTxt = "Deaktiver";
+
+            if (item.isActive == false)
+            {
+                elementid = "greyout";
+                btnTxt = "Aktiver";
+            }
+            if (item.TypeId.ToString() == @ViewBag.SuccessId)
+            {
+                ingredientType = "success";
+            }
+            else if (item.TypeId.ToString() == @ViewBag.FailId)
+            {
+                ingredientType = "danger";
+            }
+            <tr class="@ingredientType">
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.TypeName)
+                </td>
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.TypeMax)
+                </td>
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.TypeUnique)
+                </td>
+                <td class="@elementid">
+                    @Html.DisplayFor(modelItem => item.TypeExtras)
+                </td>
+                <td style="width: 340px">
+                    @using (Ajax.BeginForm("showIngredientTypeDetails", "ProductManagement", new {id = @item.TypeId}, new AjaxOptions
+                    {
+                        UpdateTargetId = "ingredientTypeModal",
+                        InsertionMode = InsertionMode.Replace,
+                        HttpMethod = "GET",
+
+
+                    }, new {@class = "form-horizontal", role = "form", id = detailsId}))
+                    {
+                        <button type="submit" class="btn btn-primary j"><b>Detaljer</b></button>
+                    }
+                    @using (Ajax.BeginForm("showIngredientTypeEdit", "ProductManagement", new {id = @item.TypeId}, new AjaxOptions
+                    {
+                        UpdateTargetId = "ingredientTypeModal",
+                        InsertionMode = InsertionMode.Replace,
+                        HttpMethod = "GET",
+
+
+                    }, new {@class = "form-horizontal", role = "form", id = editId}))
+                    {
+                        <button type="submit" class="btn btn-primary j"><b>Rediger</b></button>
+                    }
+                    @using (Ajax.BeginForm("Deactivate", "IngredientType", null, new AjaxOptions
+                    {
+                        UpdateTargetId = "updateIngredientTypes",
+                        InsertionMode = InsertionMode.Replace,
+                        HttpMethod = "POST",
+
+
+                    }, new {@class = "form-horizontal", role = "form", id = deleteId}))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-actions no-color">
+                            <input type="hidden" name="id" value=@item.TypeId>
+                        </div>
+                        <button type="submit" class="btn btn-primary j"><b>@btnTxt</b></button>
+                    }
+                </td>
+            </tr>
+        }
+    }
+</table>

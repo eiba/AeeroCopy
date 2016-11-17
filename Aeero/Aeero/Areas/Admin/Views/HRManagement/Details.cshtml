@@ -1,0 +1,90 @@
+﻿@using Aeero.Models
+@using Microsoft.AspNet.Identity
+@using Microsoft.AspNet.Identity.EntityFramework
+@model Aeero.Models.ApplicationUser
+
+@{
+    ViewBag.Title = "Details";
+    var mailto = "mailto:" + Model.Email;
+}
+
+<h2>Detaljer</h2>
+
+<div>
+    <h4>Ansatt</h4>
+    <hr/>
+    <dl class="dl-horizontal">
+        <dt>
+            Fornavn
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.firstName)
+        </dd>
+
+        <dt>
+            Etternavn
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.lastName)
+        </dd>
+
+        <dt>
+            Adresse
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Adress)
+        </dd>
+        <dt>
+            Poststed
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.City)
+        </dd>
+        <dt>
+            Postnummer
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.zipCode)
+        </dd>
+        <dt>
+            Tlf
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Phone)
+        </dd>
+        <dt>
+            Brukerolle
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.UserRole)
+        </dd>
+        <dt>
+            Email
+        </dt>
+
+        <dd>
+            <a href="@mailto">@Html.DisplayFor(model => model.Email)</a>
+        </dd>
+
+    </dl>
+</div>
+@{
+    var userManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(new ApplicationDbContext()));
+    ApplicationUser userr = userManager.FindByIdAsync(User.Identity.GetUserId()).Result;
+    var role = userr.roleNr;
+}
+<p>
+    &#8592 @Html.ActionLink("Tilbake til brukerlisten", "Index")
+    @if (role > Model.roleNr)
+    {
+        <label>|</label>
+        @Html.ActionLink("Rediger", "Edit", new {id = Model.Id})
+    }
+</p>

@@ -1,0 +1,206 @@
+﻿@model Aeero.Models.Order
+
+@{
+    var sharetext = "";
+}
+<style>
+    dd {
+        margin-bottom: 1em;
+    }
+</style>
+<div id="fb-root"></div>
+<div class="row">
+    <div class="col-md-12">
+        @if (ViewBag.Thanks)
+        {
+            <div class="alert alert-success hidden-print">
+                Takk for din bestilling! Her finner du din ordrebekreftelse. Du kan skrive den ut med knappen nederst.
+            </div>
+        }
+        <h1 class="page-header">
+            Ordrebekreftelse (#@Model.Id)
+            <small class="pull-right">Nåværende status: <strong>@Model.StateLabel()</strong></small>
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Ordredetaljer</h4>
+            </div>
+            <div class="panel-body">
+                <dl>
+                    <dt>
+                        @Html.DisplayNameFor(model => model.CustomerName)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.CustomerName)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.DeliveryTime)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.DeliveryTime)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.Deliver)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.Deliver)
+                    </dd>
+
+                    @if (Model.Deliver)
+                    {
+                        <dt>
+                            @Html.DisplayNameFor(model => model.Address)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.Address)
+                        </dd>
+
+                        <dt>
+                            @Html.DisplayNameFor(model => model.ZipCode)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.ZipCode)
+                        </dd>
+
+                        <dt>
+                            @Html.DisplayNameFor(model => model.City)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.City)
+                        </dd>
+                    }
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.State)
+                    </dt>
+
+                    <dd>
+                        @Model.StateLabel()
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.LastModified)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.LastModified)
+                    </dd>
+                </dl>
+                <a class="btn btn-lg btn-primary btn-block hidden-print" href="javascript:print()">Skriv ut</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Bestilte varer</h4>
+            </div>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Pizza</th>
+                    <th>Antall</th>
+                    <th>Størrelse</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var orderLine in Model.Lines)
+                {
+                    <tr>
+                        <td>@orderLine.Description</td>
+                        <td>@orderLine.Count</td>
+                        <td>@orderLine.SizeLabel()</td>
+                    </tr>
+
+                    if (orderLine.Equals(Model.Lines.Last()) && Model.Lines.Count > 1)
+                    {
+                        sharetext += " og " + orderLine.Count + " " + orderLine.SizeLabel() + " " + orderLine.Description;
+                    }
+                    else if (orderLine.Equals(Model.Lines.First()))
+                    {
+                        sharetext += orderLine.Count + " " + orderLine.SizeLabel() + " " + orderLine.Description;
+                    }
+                    else
+                    {
+                        sharetext += ", " + orderLine.Count + " " + orderLine.SizeLabel() + " " + orderLine.Description;
+                    }
+                }
+                </tbody>
+                <tfoot>
+                <tr>
+                    <td>Pris</td>
+                    <td>@Model.Discount % avslag</td>
+                    <td>
+                        <strong>= kr @(Model.Price*(1 - Model.Discount/100.0))</strong>
+                        (@(Model.IsPaid ? "Betalt" : "Ikke betalt"))
+                    </td>
+                </tr>
+                </tfoot>
+            </table>
+
+        </div>
+        <strong>Del på sosiale medier!</strong>
+        <br/>
+        <div class="col-sm-1">
+            @{
+                var sharetxt = "Kjøpte " + sharetext + " for " + Model.Price*(1 - Model.Discount/100.0) + " kr!";
+
+                if ((Model.Twitter != null) && Model.Twitter.isActive && Model.Twitter.UserName != null)
+                {
+
+                    <a href="https://twitter.com/share" class="twitter-share-button" data-url="@Model.share" data-text="@sharetxt" data-lang="no" data-via="@Model.Twitter.UserName"></a>
+                }
+                else
+                {
+                    <a href="https://twitter.com/share" class="twitter-share-button" data-url="@Model.share" data-text="@sharetxt" data-lang="no"></a>
+                }
+
+            }
+        </div>
+        <div class="col-sm-1">
+            <div class="fb-share-button" data-href="@Model.share" data-layout="button" data-mobile-iframe="true"></div>
+        </div>
+        </div>
+</div>
+
+<script>
+    (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id;
+        js.src = "//connect.facebook.net/nb_NO/sdk.js#xfbml=1&version=v2.6";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+
+    window.twttr = (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0],
+            t = window.twttr || {};
+        if (d.getElementById(id)) return t;
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "https://platform.twitter.com/widgets.js";
+        fjs.parentNode.insertBefore(js, fjs);
+
+        t._e = [];
+        t.ready = function(f) {
+            t._e.push(f);
+        };
+
+        return t;
+    }(document, "script", "twitter-wjs"));
+</script>

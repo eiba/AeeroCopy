@@ -1,0 +1,196 @@
+﻿@using Aeero.Models
+@model Aeero.Models.Ingredient
+
+@{
+    var isActive = true;
+}
+
+<div id="app3">
+
+
+    <modal :show.sync="showModal">
+        <h3 slot="header">Legg til Ingrediens</h3>
+        <h5 slot="body">
+            
+            @using (Ajax.BeginForm("Create", "Ingredient", null, new AjaxOptions
+            {
+                UpdateTargetId = "updateIngredients",
+                InsertionMode = InsertionMode.Replace,
+                HttpMethod = "POST"
+
+            }, new {@class = "form-horizontal", role = "form", id = "form3"}))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-horizontal">
+                    
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control", id="ingName", required = "required", @style = "position: relative; left: 30px;" } })
+                            @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.Vegetarian, htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-10">
+                            <div class="checkbox" style="position: relative; left: 50px;">
+                                @Html.EditorFor(model => model.Vegetarian)
+                                @Html.ValidationMessageFor(model => model.Vegetarian, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.PriceSmall, htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.PriceSmall, new { htmlAttributes = new { @class = "form-control", id="ingSmall", required = "required", @style = "position: relative; left: 30px;" } })
+                            @Html.ValidationMessageFor(model => model.PriceSmall, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.PriceMedium, htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.PriceMedium, new { htmlAttributes = new { @class = "form-control" ,id="ingMedium", required = "required", @style = "position: relative; left: 30px;" } })
+                            @Html.ValidationMessageFor(model => model.PriceMedium, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.PriceLarge, htmlAttributes: new {@class = "control-label col-md-2"})
+                        <div class="col-md-10">
+                            @Html.EditorFor(model => model.PriceLarge, new {htmlAttributes = new {@class = "form-control", id = "ingLarge", required="required",@style = "position: relative; left: 30px;" } })
+                            @Html.ValidationMessageFor(model => model.PriceLarge, "", new {@class = "text-danger"})
+                        </div>
+                    </div>
+                    @{
+                        ApplicationDbContext db = new ApplicationDbContext();
+                        var list = db.IngredientType.ToList();
+                    }
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.TypeId, htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-10">
+                            <select name="TypeId" class="form-control" style="position: relative; left: 30px;">
+                                @foreach (var item in list)
+                                {
+                                    if (item.isActive)
+                                    {
+                                        <option value="@item.TypeId">@item.TypeName</option>
+                                    }
+                                }
+                            </select>
+                            @Html.ValidationMessageFor(model => model.TypeId, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                   @Html.HiddenFor(model => @isActive)
+                </div>
+            }
+
+        </h5>
+    </modal>
+</div>
+
+<script type="x/template" id="ModalId3">
+    <div class="modal-mask" v-on:click="close" v-show="show" transition="modal">
+        <div class="modal-wrapper">
+            <div class="modal-container" style="width:600px;" v-on:click.stop >
+
+                <div class="modal-header">
+                    <slot name="header">
+                    </slot>
+                </div>
+
+                <div class="modal-body">
+                    <slot name="body">
+
+                    </slot>
+
+                </div>
+
+                <div class="modal-footer">
+                    <slot name="footer">
+                        <button class="modal-default-button btn-danger btn" id="knapp" v-on:click="closeButton">
+                            Legg til
+                        </button>
+                    </slot>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script>
+
+    Vue.component('modal', {
+        template: '#ModalId3',
+        props: {
+            show: {
+                type: Boolean,
+                required: true,
+                twoWay: true
+
+            }
+        },
+        methods: {
+            close: function() {
+                this.show = false;
+                this.clearFields();
+            },
+            closeButton: function () {
+
+                if ($("form#form3").valid()) {
+                    $("form#form3").submit();
+                    this.show = false;
+                    this.clearFields();
+                }
+
+            },
+            showMethod: function() {
+                this.showModal = true;
+            },
+
+            clearFields: function () {
+                $("#ingName").val("");
+                $("#ingSmall").val("");
+                $("#ingMedium").val("");
+                $("#ingLarge").val("");
+
+            },
+        },
+        ready: function() {
+            this.show = true;
+            document.addEventListener("keydown", (e) => {
+                if (this.show && e.keyCode == 27) {
+                    this.close();
+                }
+                else if (this.show && e.keyCode == 13) {
+                    this.closeButton();
+                }
+
+            });
+
+        }
+    });
+    new Vue({
+        el: '#app3',
+        data: {
+            showModal: false,
+
+        },methods: {
+            showModalf: function () {
+            this.clearFields();
+            this.showModal = true;
+            },
+            clearFields: function () {
+                $("#ingName").val("");
+                $("#ingSmall").val("");
+                $("#ingMedium").val("");
+                $("#ingLarge").val("");
+
+            },
+
+            }
+    });
+</script>

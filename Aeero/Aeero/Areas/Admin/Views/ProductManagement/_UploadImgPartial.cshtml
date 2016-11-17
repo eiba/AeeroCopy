@@ -1,0 +1,137 @@
+﻿@using Aeero.Models
+@model Aeero.Models.Pizza
+
+@{
+    var vueId = "ii" + Model.PizzaId;
+    var modalId = "jj" + Model.PizzaId;
+    var formId = "bcb" + Model.PizzaId;
+
+}
+<div id="@vueId">
+
+
+    <modal :show.sync="showModal">
+        <h3 slot="header">Bilde</h3>
+        <h5 slot="body">
+           @using (Html.BeginForm("UploadImg", "Pizzas", new {id=@Model.PizzaId}, FormMethod.Post, new { enctype = "multipart/form-data", id=@formId}))
+           {
+            @Html.AntiForgeryToken()
+
+            <div class="form-horizontal">
+                
+                
+                @if (Model.Files.Any(f => f.FileType == FileType.Picture))
+                {
+                    <div class="form-group">
+                        <span class="control-label col-md-2"><strong>Nåværende bilde:</strong></span>
+                        <div class="col-md-10">
+                            <img src="~/Admin/File?id=@Model.Files.First(f => f.FileType == FileType.Picture).FileId" alt="bilde" style="width: 300px; height: auto;" />
+                        </div>
+                    </div>
+                }
+
+                <div class="form-group">
+                    @Html.Label("Bilde", new { @class = "control-label col-md-2" })
+                    <div class="col-md-10">
+                        <input type="file" id="Picture" name="upload" />
+                    </div>
+                </div>
+
+            </div>
+           }
+        </h5>
+    </modal>
+</div>
+
+<script type="x/template" id="@modalId">
+    <div class="modal-mask" v-on:click="close" v-show="show" transition="modal">
+        <div class="modal-wrapper">
+            <div class="modal-container" v-on:click.stop style="width: 600px;">
+
+                <div class="modal-header">
+                    <slot name="header">
+                    </slot>
+                </div>
+
+                <div class="modal-body">
+                    <slot name="body">
+
+                    </slot>
+
+                </div>
+
+                <div class="modal-footer">
+                    <slot name="footer">
+                        <button class="modal-default-button btn-danger btn" id="knapp" v-on:click="closeButton">
+                            Lagre
+                        </button>
+                    </slot>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script>
+
+    Vue.component('modal', {
+        template: '#@modalId',
+        props: {
+            show: {
+                type: Boolean,
+                required: true,
+                twoWay: true
+
+            }
+        },
+        methods: {
+            close: function() {
+                this.show = false;
+            },
+            closeButton: function () {
+                if ($("form#@formId").valid()) {
+                    $("form#@formId").submit();
+                    this.show = false;
+                }
+            },
+
+            showMethod: function() {
+                this.showModal = true;
+            }
+            },
+
+        ready: function() {
+            this.show = true;
+            document.addEventListener("keydown", (e) => {
+                if (this.show && e.keyCode == 27) {
+                    this.close();
+                }
+                else if (this.show && e.keyCode == 13) {
+                    this.closeButton();
+                }
+
+            });
+
+        }
+    });
+    new Vue({
+        el: '#@vueId',
+        data: {
+            showModal: false,
+
+        },methods: {
+            showModalf: function () {
+
+            this.showModal = true;
+            }
+
+            }
+    });
+    function suc() {
+        //$("#@formId").form.reset();
+
+
+    }
+
+</script>

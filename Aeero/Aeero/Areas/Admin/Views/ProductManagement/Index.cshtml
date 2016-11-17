@@ -1,0 +1,90 @@
+﻿@using Aeero.Models
+@model Aeero.Areas.Admin.Models.ProductsModel
+
+@{
+    ViewBag.Title = "Index";
+    var show = true;
+}
+<script src="~/Scripts/jquery-2.2.3.min.js"></script>
+<h2>Produkter</h2>
+
+<br/>
+
+
+<ul class="nav nav-tabs">
+    <li class="active"><a data-toggle="tab" href="#Pizzas" class="Pizzas">Pizzaer</a></li>
+    <li><a data-toggle="tab" href="#Ingredients" class="Ingredients">Ingredienser</a></li>
+    <li><a data-toggle="tab" href="#IngredientTypes" class="IngredientTypes">Ingredienstyper</a></li>
+</ul>
+
+
+<div class="tab-content">
+    <div id="Pizzas" class="tab-pane fade in active">
+        <br />
+        <div id="updatePizzas">
+            @Html.Partial("_PizzasPartial", Model.Pizzas)
+        </div>
+    </div>
+    <div id="Ingredients" class="tab-pane fade">
+
+        <div id="updateIngredients">
+            @Html.Partial("_IngredientsPartial", Model.Ingredients)
+        </div>
+    </div>
+    <div id="IngredientTypes" class="tab-pane fade">
+        <br />
+        <div id="updateIngredientTypes">
+            @Html.Partial("_IngredientTypesPartial", Model.IngredientTypes)
+        </div>
+    </div>
+</div>
+
+<form action="" data-ajax="true" data-ajax-method="POST" data-ajax-mode="replace" data-ajax-update="" id="theForm" method="post"></form>
+<script>
+    $(document).ready(function () {
+
+        var action = "/Admin/ProductManagement/";
+
+        function buildUrl(url, parameters) {
+            var qs = "";
+            for (var key in parameters) {
+                var value = parameters[key];
+                qs += encodeURIComponent(key) + "=" + encodeURIComponent(value) + "&";
+            }
+            if (qs.length > 0) {
+                qs = qs.substring(0, qs.length - 1);
+                url = url + "?" + qs;
+            }
+            return url;
+        }
+
+        function showProduct(b, type) {
+
+            var updateId = "#update" + type;
+            $("#theForm").attr('data-ajax-update', updateId);
+
+            var params = {
+                type: type,
+                show: b
+            }
+            var url = buildUrl(action, params);
+            $("#theForm").prop('action', url);
+            $('#theForm').submit();
+        }
+        
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            var target = $(e.target).prop("class");
+            showProduct(true,target);
+        });
+
+    });
+
+</script>
+    
+@section Scripts {
+
+        <script src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
+        <script src="~/Scripts/vue.js"></script>
+        @Scripts.Render("~/bundles/jqueryval")
+
+    }

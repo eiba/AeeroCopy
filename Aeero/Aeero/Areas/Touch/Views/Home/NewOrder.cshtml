@@ -1,0 +1,352 @@
+﻿@using Aeero.Models
+
+@{
+    ViewBag.Title = "Ny ordre";
+    ApplicationDbContext db = new ApplicationDbContext();
+    var resturant = db.Contact.Find(1);
+    var origin = resturant.Address + ", " + resturant.ZipCode + " " + resturant.City;
+}
+
+<div id="newOrder">
+    <div class="row">
+        <div class="col-sm-12">
+            <div v-if="ErrorFields.length" class="alert alert-danger">
+                Følgende felter er ikke fylt ut, eller er fylt ut på feil måte:
+                <ul>
+                    <li v-for="field in ErrorFields">{{field}}</li>
+                </ul>
+            </div>
+            <h3>Ordreinformasjon</h3>
+        </div>
+    </div>
+
+    <div class="fill-light">
+        <div class="row">
+            <div class="form-group col-md-3">
+                <label class="control-label">Kundens navn:</label>
+                <input class="form-control" v-model="Order.CustomerName"/>
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label">Telefon:</label>
+                <input class="form-control" pattern="[0-9]{8}" v-model="Order.Phone"/>
+            </div>
+            <div class="form-group col-md-12">
+                <label>
+                    <input type="checkbox" v-model="Order.Deliver"/>
+                    Skal leveres
+                </label>
+            </div>
+        </div>
+
+        <div v-if="Order.Deliver" class="row">
+            <div class="form-group col-md-3">
+                <label class="control-label">Leveringsadresse:</label>
+                <input class="form-control" v-model="Order.Address"/>
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label">Postnummer:</label>
+                <input class="form-control" pattern="[0-9]{4}" maxlength="4" v-model="Order.ZipCode" v-on:keyup="updateCity()"/>
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label">Poststed:</label>
+                <input class="form-control" v-model="Order.City"/>
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label">Beregnet kjøretid:</label><br />
+                <span>{{PreviewTime}}</span>
+            </div>
+          </div>
+    </div>
+
+    <div class="row">
+        <div class="form-group col-md-12">
+            <label class="control-label">Hente / leveringstidspunkt:</label>
+            <input class="form-control" type="hidden" v-datepicker="Order.DeliveryTime" v-bind:sidebyside="true"/>
+        </div>
+    </div>
+
+    <hr/>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <h3>Legg til i ordre</h3>
+        </div>
+        <div class="col-md-3" v-for="pizza in Pizzas">
+            <div class="panel panel-primary panel-pizza-btn" v-on:click="addLine(pizza)" style="cursor: pointer">
+                <div class="panel-heading">
+                    <strong>{{pizza.Name}}</strong>
+                    <em class="pull-right">{{pizza.PriceSmall}} / {{pizza.PriceMedium}} / {{pizza.PriceLarge}}</em>
+                </div>
+                <div class="panel-body">
+                    <span v-for="ingredient in pizza.Ingredients">
+                        {{ingredient.Name}}<span v-if="$index < pizza.Ingredients.length-1">, </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr/>
+
+    <div class="fill-light">
+        <div class="row">
+            <div class="col-sm-12">
+                <table class="table align-middle">
+                    <tr>
+                        <th>Pizza</th>
+                        <th>Størrelse</th>
+                        <th style="width: 20%">Antall</th>
+                        <th>Pris</th>
+                        <th style="width: 10%">&nbsp;</th>
+                        <th style="width: 10%">&nbsp;</th>
+                    </tr>
+                    <tr v-for="orderLine in Order.Lines">
+                        <td>
+                            <h4>{{orderLine.Pizza.Name}} <em v-if="orderLine.Pizza.Changed === true">(endret)</em></h4>
+                            <small>
+                                <span v-for="ingredient in orderLine.Pizza.Ingredients|orderBy 'Name'">
+                                    {{ingredient.Name}}<span v-if="ingredient.Count > 1"> ({{ingredient.Count}})</span><span v-if="$index < orderLine.Pizza.Ingredients.length-1">, </span>
+                                </span>
+                            </small>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-primary" v-on:click="setPizzaSize(orderLine.Pizza, 0)" v-bind:class="{'active': orderLine.Pizza.Size === 0}">Liten</button>
+                                <button class="btn btn-primary" v-on:click="setPizzaSize(orderLine.Pizza, 1)" v-bind:class="{'active': orderLine.Pizza.Size === 1}">Medium</button>
+                                <button class="btn btn-primary" v-on:click="setPizzaSize(orderLine.Pizza, 2)" v-bind:class="{'active': orderLine.Pizza.Size === 2}">Stor</button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="form-group-lg">
+                                <input class="form-control" type="number" v-model="orderLine.Count" min="1"/>
+                            </div>
+                        </td>
+                        <td>
+                            {{orderLine.Count}} &times; kr {{orderLine.Pizza.Price.toFixed(2)}} = <br/>
+                            <strong>kr {{(orderLine.Count * orderLine.Pizza.Price).toFixed(2)}}</strong>
+                        </td>
+                        <td>
+                            <button class="btn btn-lg btn-block btn-primary" v-on:click="editLine($index)">Rediger</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-lg btn-block btn-danger" v-on:click="deleteLine($index)">Slett</button>
+                        </td>
+                    </tr>
+                    <tr v-if="Order.Lines.length === 0"><td colspan="6">Ingen produkter lagt til.</td></tr>
+                    <tr v-if="Order.Deliver">
+                        <td colspan="3">Levering</td>
+                        <td colspan="3">kr {{FixedDeliveryPrice}}.00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            Sum
+                            <span class="pull-right">Avslag (%)</span>
+                        </td>
+                        <td>
+                            <div class="form-group-lg">
+                                <input class="form-control" type="number" step="5" min="0" max="100" v-model="Order.Discount"/>
+                            </div>
+                        </td>
+                        <td colspan="3">kr {{OrderPrice.toFixed(2)}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <a href="#" class="btn btn-primary btn-lg" v-on:click="submitOrder()">Opprett ordre</a>
+        </div>
+    </div>
+
+    <div class="modal show" v-if="Edit !== null">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" v-on:click="closeEdit()"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Rediger ordrelinje</h4>
+                </div>
+                <div class="modal-body">
+                    <h4>Pizzanavn / beskrivelse</h4>
+                    <input class="form-control" v-model="Edit.Name"/>
+                    <hr />
+                    <div v-for="type in IngredientTypes">
+                        <h4>{{type.Name}}</h4>
+                        <div v-if="type.Unique">
+                            <select class="form-control" v-on:change="updateUniqueIngredients(Edit)" v-model="UniqueIngredients[type.Id]">
+                                <option v-for="ingredient in type.Ingredients"
+                                        v-bind:selected="ingredientCount(Edit, ingredient.Id) > 0"
+                                        v-bind:value="ingredient.Id">
+                                    {{ingredient.Name}}
+                                </option>
+                            </select>
+                        </div>
+                        <table class="table" v-if="!type.Unique">
+                            <tr>
+                                <th>Ingrediens</th>
+                                <th>Mengde</th>
+                                <th>Pris per ekstra</th>
+                            </tr>
+                            <tr v-for="ingredient in type.Ingredients">
+                                <td>{{ingredient.Name}}</td>
+                                <td>
+                                    <span class="label" style="margin-right: 1em" v-bind:class="{'label-default': ingredientCount(Edit, ingredient.Id) > 0}">&times; {{ingredientCount(Edit, ingredient.Id)}}</span>
+                                    <button class="btn btn-success" v-on:click="updateIngredientCount(Edit, ingredient, 1, true)"><i class="glyphicon glyphicon-plus"></i></button>
+                                    <button class="btn btn-danger" v-on:click="updateIngredientCount(Edit, ingredient, -1, true)"><i class="glyphicon glyphicon-minus"></i></button>
+                                </td>
+                                <td>
+                                    kr
+                                    <span v-if="Edit.Size === 0">{{ingredient.PriceSmall.toFixed(2)}}</span>
+                                    <span v-if="Edit.Size === 1">{{ingredient.PriceMedium.toFixed(2)}}</span>
+                                    <span v-if="Edit.Size === 2">{{ingredient.PriceLarge.toFixed(2)}}</span>
+                                </td>
+                            </tr>
+                        </table>
+                        <hr />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" v-on:click="closeEdit()">Lukk</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-backdrop fade in" style="z-index: -1" v-on:click="closeEdit()"></div>
+    </div>
+</div>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+
+<script src="/Scripts/Shared/order-helpers.js"></script>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgrQxme9MHcInAgI3LzGPGE8GdjPcZ7UA"></script>
+<script>
+    var token = $('#__AjaxAntiForgeryForm input[name="__RequestVerificationToken"]').val();
+    var ingredientTypes = @Html.Raw(Json.Encode(ViewBag.IngredientTypes));
+    var pizzas = @Html.Raw(Json.Encode(ViewBag.Pizzas));
+    var fixedDeliveryPrice = @ViewBag.FixedDeliveryPrice;
+
+    var v = new Vue({
+        el: '#newOrder',
+        data: {
+            IngredientTypes: ingredientTypes,
+            Pizzas: pizzas,
+            FixedDeliveryPrice: fixedDeliveryPrice,
+
+            Order: {
+                __RequestVerificationToken: token,
+                CustomerName: '',
+                Phone: '',
+                DeliveryTime: moment().toJSON(),
+                Deliver: false,
+
+                Address: '',
+                City: '',
+                ZipCode: '',
+
+                Lines: [],
+                Discount: 0
+            },
+
+            // These hold state that doesn't mean anything besides keeping track of things temporarily
+            ErrorFields: [],
+            Edit: null,
+            UniqueIngredients: {},
+            PreviewTime: ''
+        },
+        methods: {
+            updateCity: function() {
+                if (this.Order.ZipCode.length !== 4) return;
+                this.Order.City = zipCodes[parseInt(this.Order.ZipCode)] || '';
+                var address = this.Order.Address + ", " + this.Order.ZipCode + " " + this.Order.City + ", Norway";
+                this.getTime(address);
+            },
+
+            addLine: function(pizza) {
+                this.Order.Lines.push({
+                    Pizza: pizzaToPizzaInstance(pizza),
+                    Count: 1
+                });
+            },
+            editLine: function(index) {
+                this.Edit = this.Order.Lines[index].Pizza;
+            },
+            closeEdit: function() {
+                this.Edit = null;
+            },
+            deleteLine: function(index) {
+                this.Order.Lines.splice(index, 1);
+            },
+
+            setPizzaSize: function(pizza, size) {
+                pizza.Size = size;
+                pizza.Price = calculatePizzaPrice(pizza);
+            },
+
+            // Used in edit modal
+            ingredientCount: function(pizza, ingredientId) {
+                return ingredientCount(pizza, ingredientId);
+            },
+
+            // Removes all ingredients in active "TypeUnique" ingredient type, and re-adds the newly selected one.
+            updateUniqueIngredients: function(pizza) {
+                updateUniqueIngredients(pizza, this.UniqueIngredients);
+            },
+
+            // Used in edit modal
+            updateIngredientCount: function(pizza, ingredient, numChange, calculatePrice) {
+                updateIngredientCount(pizza, ingredient, numChange, calculatePrice);
+            },
+            //Makes the call to google to set up a distance matrix from the resturant(Terje Vigen) to where 
+            //the costumer is.
+            getTime: function(destination) {
+                var service = new google.maps.DistanceMatrixService();
+                service.getDistanceMatrix(
+                    {
+                        origins: ['@origin'],
+                        destinations: [destination],
+                        travelMode: google.maps.TravelMode.DRIVING,
+                        avoidHighways: false,
+                        avoidTolls: true
+                    },
+                    this.callback
+                );
+            },
+            //Sets the diliverytime of the order to whatever is returned from the google servers
+            callback: function(response, status) {
+                if(status === "OK") {
+                    this.PreviewTime = response.rows[0].elements[0].duration.text;
+                } else {
+                    alert("Error: " + status);
+                }
+            },
+            
+
+            submitOrder: function() {
+                this.ErrorFields = validateOrder(this.Order);
+                if (this.ErrorFields.length > 0) {
+                    return;
+                }
+
+                $.post('@Url.Action("CreateOrder", "Home")',
+                    this.Order,
+                    function(data) {
+                        if (data.Id) window.location.pathname = '@Url.Action("Index", "Home")';
+                        else alert(data);
+                    }
+                );
+            }
+        },
+        computed: {
+            OrderPrice: function() {
+                var price = calculateOrderPrice(this.Order);
+                if (this.Order.Deliver) price += this.FixedDeliveryPrice;
+                return price;
+            }
+        }
+    });
+
+</script>

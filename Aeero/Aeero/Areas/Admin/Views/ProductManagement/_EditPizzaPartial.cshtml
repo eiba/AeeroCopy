@@ -1,0 +1,268 @@
+﻿@using Aeero.Models
+@model Aeero.Models.Pizza
+
+@{
+    var vueId = "g" + Model.PizzaId;
+    var modalId = "h" + Model.PizzaId;
+    var formId = "aa" + Model.PizzaId;
+    var id = "ac" + Model.PizzaId;
+    var isActive = Model.isActive;
+}
+<div id="@vueId">
+
+
+    <modal :show.sync="showModal">
+        <h3 slot="header">Rediger</h3>
+        <h5 slot="body">
+            @using (Ajax.BeginForm("Edit", "Pizzas", null, new AjaxOptions
+            {
+                UpdateTargetId = "updatePizzas",
+                InsertionMode = InsertionMode.Replace,
+                HttpMethod = "POST",
+                OnSuccess = "$.validator.unobtrusive.parse('#formId');"
+
+            }, new {@class = "form-horizontal", role = "form", id = formId}))
+            {
+                 @Html.AntiForgeryToken()
+    
+        <div class="form-horizontal">
+        
+        
+       @* @Html.ValidationSummary(true, "", new { @class = "text-danger" })*@
+        @*@Html.HiddenFor(model => model.PizzaId)*@
+        
+        <div class="form-group">
+            @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.PriceSmall, htmlAttributes: new {@class = "control-label col-md-2"})
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.PriceSmall, new {htmlAttributes = new {@class = "form-control", required = "required"} })
+                @Html.ValidationMessageFor(model => model.PriceSmall, "", new {@class = "text-danger"})
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.PriceMedium, htmlAttributes: new {@class = "control-label col-md-2"})
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.PriceMedium, new {htmlAttributes = new {@class = "form-control", required = "required" } })
+                @Html.ValidationMessageFor(model => model.PriceMedium, "", new {@class = "text-danger"})
+            </div>
+        </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.PriceLarge, htmlAttributes: new {@class = "control-label col-md-2"})
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.PriceLarge, new {htmlAttributes = new {@class = "form-control", required = "required"}})
+                    @Html.ValidationMessageFor(model => model.PriceLarge, "", new {@class = "text-danger"})
+                </div>
+            </div>
+            @Html.HiddenFor(model => @isActive)
+
+            @Html.EditorFor(model => model.PizzaId, new { htmlAttributes = new { @class = "form-control", id=@id, type="hidden" } })
+
+            @{
+                ApplicationDbContext db = new ApplicationDbContext();
+                Pizza pizza = db.Pizza.Find(Model.PizzaId);
+                var pizzaIngredients = pizza.Ingredients.ToList();
+
+                ViewBag.UsedIngredientIds = pizzaIngredients.ToDictionary(pi => pi.IngredientId, pi => pi);
+                var ingredientIds = (Dictionary<int, PizzaIngredient>) ViewBag.UsedIngredientIds;
+                int i = -1;
+
+                var list = db.IngredientType.ToList();
+        }
+
+        @foreach (var type in  list)
+        {
+            if (type.isActive){
+            var listt = type.Ingredients.ToList();
+            if (listt.Count > 0)
+            {
+                <div class="form-group">
+                    <label class="control-label col-md-2">@type.TypeName</label>
+                    <div class="col-md-10">
+                        @* Only allow one ingredient per type, show as dropdown *@
+                        @if (type.TypeUnique)
+                        {
+                            PizzaIngredient pi = null;
+                            <input type="hidden" name="Ingredients.Index" value="@(++i)"/>
+                            <select name="Ingredients[@(i)].IngredientId" class="form-control">
+                                @* List ingredients, also check if current ingredient in loop, is already selected. If so, we store the ID in "pi" for use later *@
+                                @foreach (var ingredient in type.Ingredients.ToList())
+                                {
+                                    if (ingredient.isActive)
+                                    {
+                                        if (ingredientIds.ContainsKey(ingredient.IngredientId))
+                                        {
+                                            ingredientIds.TryGetValue(ingredient.IngredientId, out pi);
+                                        }
+                                        <option value="@ingredient.IngredientId" @(ingredientIds.ContainsKey(ingredient.IngredientId) ? "selected" : "")>@ingredient.Name</option>
+                                    }
+                                }
+                            </select>
+
+                            if (pi != null && pi.PizzaIngredientId != 0)
+                            {
+                                <input type="hidden" name="Ingredients[@(i)].PizzaIngredientId" value="@pi.PizzaIngredientId"/>
+                            }
+
+                            <input type="hidden" name="Ingredients[@(i)].PizzaId" value="@Model.PizzaId"/>
+                            <input type="hidden" name="Ingredients[@(i)].Count" value="1"/>
+                        }
+                        else
+                        {
+                        @* Show all ingredients in this type, and set count with number input *@
+
+
+
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Mengde</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @{
+
+
+                                    foreach (var ingredient in listt)
+                                    {
+                                        if (ingredient.isActive)
+                                        {
+                                            PizzaIngredient pi = null;
+                                            ingredientIds.TryGetValue(ingredient.IngredientId, out pi);
+                                            <tr>
+
+                                                <td style="min-width: 1%; white-space: nowrap">
+                                                    @ingredient.Name
+                                                    <input type="hidden" name="Ingredients.Index" value="@(++i)"/>
+                                                    @if (pi != null && pi.PizzaIngredientId != 0)
+                                                    {
+                                                        <input type="hidden" name="Ingredients[@(i)].PizzaIngredientId" value="@pi.PizzaIngredientId"/>
+                                                    }
+                                                    <input type="hidden" name="Ingredients[@(i)].IngredientId" value="@ingredient.IngredientId"/>
+                                                    <input type="hidden" name="Ingredients[@(i)].PizzaId" value="@Model.PizzaId"/>
+                                                </td>
+
+                                                <td><input type="number" class="form-control" name="Ingredients[@(i)].Count" value="@(pi?.Count ?? 0)" min="0" max="@type.TypeMax" size="3"></td>
+                                            </tr>
+                                        }
+                                    }
+                                }
+
+
+                                </tbody>
+                            </table>
+
+                        }
+                    </div>
+                </div>
+            }
+        }
+        }
+    </div>
+            }
+
+
+
+        </h5>
+    </modal>
+</div>
+
+<script type="x/template" id="@modalId">
+    <div class="modal-mask" v-on:click="close" v-show="show" transition="modal">
+        <div class="modal-wrapper">
+            <div class="modal-container" v-on:click.stop style="width: 600px;">
+
+                <div class="modal-header">
+                    <slot name="header">
+                    </slot>
+                </div>
+
+                <div class="modal-body">
+                    <slot name="body">
+
+                    </slot>
+
+                </div>
+
+                <div class="modal-footer">
+                    <slot name="footer">
+                        <button class="modal-default-button btn-danger btn" id="knapp" v-on:click="closeButton">
+                            Lagre
+                        </button>
+                    </slot>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script>
+
+    Vue.component('modal', {
+        template: '#@modalId',
+        props: {
+            show: {
+                type: Boolean,
+                required: true,
+                twoWay: true
+
+            }
+        },
+        methods: {
+            close: function() {
+                this.show = false;
+            },
+            closeButton: function () {
+                if ($("form#@formId").valid()) {
+                    $("form#@formId").submit();
+                    this.show = false;
+                }
+            },
+
+            showMethod: function() {
+                this.showModal = true;
+            }
+            },
+
+        ready: function() {
+            this.show = true;
+            document.addEventListener("keydown", (e) => {
+                if (this.show && e.keyCode == 27) {
+                    this.close();
+                }
+                else if (this.show && e.keyCode == 13) {
+                    this.closeButton();
+                }
+
+            });
+
+        }
+    });
+    new Vue({
+        el: '#@vueId',
+        data: {
+            showModal: false,
+
+        },methods: {
+            showModalf: function () {
+            $("#@id").val(@Model.PizzaId);
+            this.showModal = true;
+            }
+
+            }
+    });
+    function suc() {
+        //$("#@formId").form.reset();
+        
+        
+    }
+
+</script>

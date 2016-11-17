@@ -1,0 +1,13 @@
+﻿@using Aeero.Areas.Admin.Models
+@model StatusModel
+
+@Ajax.ActionLink(Model.status,
+    Model.handling,
+    "HRManagement",
+    new { id = Model.Id },
+    new AjaxOptions
+    {
+        UpdateTargetId = Model.Id,
+        InsertionMode = InsertionMode.Replace,
+        HttpMethod = "GET"
+    },new {@class= "btn btn-primary j bold button" })
